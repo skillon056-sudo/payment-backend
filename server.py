@@ -19,14 +19,25 @@ FRONTEND_BASE = "http://localhost:8000"
 # ================= FIREBASE INIT =================
 import os
 
+# Firebase safe initialization for Render
+db = None  # default None
+
 try:
-    cred = credentials.Certificate("serviceAccountKey.json")
-    firebase_admin.initialize_app(cred)
-    db = firestore.client()
-    print("Firebase connected successfully")
+    # Local testing के लिए file use करो
+    if os.path.exists("serviceAccountKey.json"):
+        cred = credentials.Certificate("serviceAccountKey.json")
+        firebase_admin.initialize_app(cred)
+        db = firestore.client()
+        print("Firebase connected from local file")
+    else:
+        print("No Firebase key file found – running without Firebase (Render mode)")
 except Exception as e:
-    print("Firebase not available (Render deploy):", e)
-    db = None  # crash नहीं होगा
+    print("Firebase init error (normal on Render):", e)
+
+# अगर db None है तो API में check कर लो (नीचे example)
+# example in create_order function:
+# if db is None:
+#     return jsonify({"status": "error", "message": "Database not available"}), 500
 
 # ================= FLASK INIT =================
 app = Flask(__name__)
@@ -35,6 +46,8 @@ CORS(app)
 # ================= CREATE ORDER =================
 @app.route("/api/create-order", methods=["POST"])
 def create_order():
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not available on server"}), 500
     try:
         data = request.json
         product_id = data.get("productId")
