@@ -1,8 +1,8 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import requests
-from urllib.parse import quote
-import uuid
+import os
+import json
 import time
 
 import firebase_admin
@@ -14,29 +14,30 @@ ZAPUPI_CREATE_URL = "https://api.zapupi.com/api/create-order"
 ZAPUPI_TOKEN = "d6a35a8e8f49bafd82ba29f01589225a"
 ZAPUPI_SECRET = "8f6d1397dcf23599c528228554d79692"
 
-FRONTEND_BASE = "http://localhost:8000"
+FRONTEND_BASE = "http://localhost:8000"  # production में live frontend URL कर देना
 
-# ================= FIREBASE INIT =================
-db = None  # default
+# ================= FIREBASE INIT (SAFE FOR RENDER + LOCAL) =================
+db = None  # default None
 
 try:
-    # Render पर env variable से key पढ़ो
     firebase_key_str = os.getenv("FIREBASE_SERVICE_ACCOUNT")
     if firebase_key_str:
+        # Render पर env variable से load
         service_account_info = json.loads(firebase_key_str)
         cred = credentials.Certificate(service_account_info)
-        print("Firebase connected from Render env variable")
+        print("Firebase connected from Render environment variable")
     else:
-        # Local testing के लिए file use करो
+        # Local testing के लिए file से load
         cred = credentials.Certificate("serviceAccountKey.json")
-        print("Firebase connected from local file")
+        print("Firebase connected from local serviceAccountKey.json")
 
     firebase_admin.initialize_app(cred)
     db = firestore.client()
 
 except Exception as e:
-    print("Firebase init failed:", e)
-    db = None  # crash नहीं होगा
+    print("Firebase initialization failed (normal on Render if key not set):", e)
+    db = None
+
 # ================= FLASK INIT =================
 app = Flask(__name__)
 CORS(app)
@@ -46,6 +47,7 @@ CORS(app)
 def create_order():
     if db is None:
         return jsonify({"status": "error", "message": "Database not available on server"}), 500
+
     try:
         data = request.json
         product_id = data.get("productId")
@@ -67,7 +69,7 @@ def create_order():
         # Generate order ID
         order_id = str(int(time.time() * 1000))
 
-        # Create PENDING order
+        # Create PENDING order in Firebase
         db.collection("orders").document(order_id).set({
             "orderId": order_id,
             "userId": user_id,
@@ -76,14 +78,17 @@ def create_order():
             "status": "pending",
             "createdAt": firestore.SERVER_TIMESTAMP
         })
+
+        # Success redirect URL
         redirect_url = f"{FRONTEND_BASE}/success.html?id={product_id}&order={order_id}"
 
+        # ZapUPI payload
         payload = {
             "token_key": ZAPUPI_TOKEN,
             "secret_key": ZAPUPI_SECRET,
             "amount": amount,
             "order_id": order_id,
-            "redirect_url": redirect_url   # normal & वाला
+            "redirect_url": redirect_url
         }
 
         res = requests.post(ZAPUPI_CREATE_URL, data=payload, timeout=30)
@@ -91,7 +96,7 @@ def create_order():
         print("ZAPUPI RESPONSE:", zapupi)
 
         if zapupi.get("status") != "success":
-            return jsonify({"status": "error", "message": zapupi.get("message")}), 400
+            return jsonify({"status": "error", "message": zapupi.get("message", "Payment gateway error")}), 400
 
         return jsonify({
             "status": "success",
@@ -99,15 +104,16 @@ def create_order():
         })
 
     except Exception as e:
-        print("SERVER ERROR:", e)
+        print("CREATE ORDER ERROR:", e)
         return jsonify({"status": "error", "message": "Server error"}), 500
 
 
-if __name__ == "__main__":
-    # ❗ debug FALSE – auto restart band
-    app.run(port=5000, debug=False)
+# ================= VERIFY PAYMENT (SUCCESS PAGE CALL) =================
 @app.route("/api/verify-payment", methods=["POST"])
 def verify_payment():
+    if db is None:
+        return jsonify({"status": "error", "message": "Database not available"}), 500
+
     try:
         data = request.json
 
@@ -122,7 +128,6 @@ def verify_payment():
         if status != "SUCCESS":
             return jsonify({"status": "error", "message": "Payment failed"}), 400
 
-        # Firebase से order fetch करो
         order_ref = db.collection("orders").document(order_id)
         order_snap = order_ref.get()
 
@@ -131,14 +136,13 @@ def verify_payment():
 
         order_data = order_snap.to_dict()
 
-        # Safety checks
         if order_data.get("status") == "paid":
             return jsonify({"status": "success", "message": "Already paid"}), 200
 
         if str(order_data.get("amount")) != str(received_amount):
             return jsonify({"status": "error", "message": "Amount mismatch"}), 400
 
-        # ✅ SAB THIK – PAID MARK KARO
+        # Mark as paid
         order_ref.update({
             "status": "paid",
             "paidAt": firestore.SERVER_TIMESTAMP,
@@ -148,5 +152,10 @@ def verify_payment():
         return jsonify({"status": "success", "message": "Payment verified and order updated"})
 
     except Exception as e:
-        print("VERIFY ERROR:", e)
+        print("VERIFY PAYMENT ERROR:", e)
         return jsonify({"status": "error", "message": "Server error"}), 500
+
+
+# ================= RUN APP =================
+if __name__ == "__main__":
+    app.run(port=5000, debug=False)
