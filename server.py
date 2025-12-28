@@ -17,9 +17,16 @@ ZAPUPI_SECRET = "8f6d1397dcf23599c528228554d79692"
 FRONTEND_BASE = "http://localhost:8000"
 
 # ================= FIREBASE INIT =================
-cred = credentials.Certificate("serviceAccountKey.json")
-firebase_admin.initialize_app(cred)
-db = firestore.client()
+import os
+
+try:
+    cred = credentials.Certificate("serviceAccountKey.json")
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+    print("Firebase connected successfully")
+except Exception as e:
+    print("Firebase not available (Render deploy):", e)
+    db = None  # crash नहीं होगा
 
 # ================= FLASK INIT =================
 app = Flask(__name__)
