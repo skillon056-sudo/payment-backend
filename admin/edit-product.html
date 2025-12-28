@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Edit Product</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="main full">
+  <div class="topbar">
+    <div class="title">Edit Product</div>
+  </div>
+
+  <div class="content form-box">
+
+    <input id="title">
+    <input id="price" type="number">
+    <input id="image">
+    <textarea id="description"></textarea>
+    <textarea id="inside"></textarea>
+    <input id="fileUrl">
+    <input id="paymentUrl">
+
+    <button onclick="updateProduct()">UPDATE PRODUCT</button>
+  </div>
+</div>
+
+<script type="module">
+import { db } from "../firebase.js";
+import {
+  doc, getDoc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const id = new URLSearchParams(location.search).get("id");
+const ref = doc(db,"products",id);
+const snap = await getDoc(ref);
+const p = snap.data();
+
+title.value = p.title;
+price.value = p.price;
+image.value = p.image;
+description.value = p.description;
+inside.value = (p.inside || []).join(",");
+fileUrl.value = p.fileUrl;
+paymentUrl.value = p.paymentUrl;
+
+window.updateProduct = async ()=>{
+  await updateDoc(ref,{
+    title: title.value,
+    price: Number(price.value),
+    image: image.value,
+    description: description.value,
+    inside: inside.value.split(",").map(i=>i.trim()),
+    fileUrl: fileUrl.value,
+    paymentUrl: paymentUrl.value,
+    updatedAt: Date.now()
+  });
+
+  alert("Product updated");
+  location.href = "products.html";
+};
+</script>
+
+</body>
+</html>

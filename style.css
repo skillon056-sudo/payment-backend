@@ -1,0 +1,637 @@
+/* ===== RESET ===== */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+body{
+  background:#050505;
+  color:#fff;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* ===== HEADER ===== */
+.top-bar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:14px 22px;
+  background:#0a0a0a;
+  border-bottom:1px solid #1f1f1f;
+}
+.logo{
+  font-size:18px;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+
+/* ===== PROFILE MENU ===== */
+.menu{
+  position:relative;
+}
+.menu img{
+  width:34px;
+  height:34px;
+  border-radius:50%;
+  cursor:pointer;
+}
+.dropdown{
+  position:absolute;
+  right:0;
+  top:42px;
+  background:#111;
+  border:1px solid #222;
+  border-radius:8px;
+  min-width:180px;
+  display:none;
+  z-index:50;
+}
+.dropdown a{
+  display:block;
+  padding:10px 14px;
+  color:#fff;
+  text-decoration:none;
+  font-size:14px;
+}
+.dropdown a:hover{
+  background:#1a1a1a;
+}
+.menu:hover .dropdown{
+  display:block;
+}
+
+/* ===== PRODUCT GRID ===== */
+.product-grid{
+  padding:20px;
+  display:grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px,1fr));
+  gap:18px;
+}
+
+/* ===== PRODUCT CARD (FLIPKART STYLE) ===== */
+.product-card{
+  background:#0f0f0f;
+  border:1px solid #1f1f1f;
+  border-radius:10px;
+  padding:10px;
+  cursor:pointer;
+  transition:0.2s ease;
+}
+.product-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 0 15px #00ffee33;
+}
+
+/* ===== PRODUCT CARD IMAGE (9:16) ===== */
+.product-card img{
+  width:100%;
+  aspect-ratio: 9 / 16;   /* 🔥 MAIN HERO */
+  object-fit: contain;    /* 🔥 IMAGE CUT NAHI HOGI */
+  background:#000;        /* empty space black */
+  border-radius:8px;
+}
+
+/* product title */
+.product-title{
+  font-size:14px;
+  margin:8px 0 4px;
+  line-height:1.3;
+  height:36px;              /* 2 lines max */
+  overflow:hidden;
+}
+
+/* product price */
+.product-price{
+  font-size:16px;
+  font-weight:bold;
+  color:#00ff88;
+}
+
+/* ===== RESPONSIVE ===== */
+@media(max-width:600px){
+  .product-grid{
+    grid-template-columns: repeat(2,1fr);
+  }
+}
+/* ===== PRODUCT PAGE ===== */
+.product-top{
+  position:sticky;
+  top:0;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  background:#0a0a0a;
+  border-bottom:1px solid #1f1f1f;
+  z-index:100;
+}
+
+.back-btn,
+.menu-btn{
+  background:none;
+  border:none;
+  color:white;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.top-title{
+  font-size:15px;
+  font-weight:bold;
+}
+
+/* dropdown override */
+.product-top .dropdown{
+  right:10px;
+  top:46px;
+}
+
+/* PRODUCT LAYOUT */
+.product-wrap{
+  display:flex;
+  gap:30px;
+  padding:20px;
+}
+
+/* ===== PRODUCT PAGE IMAGE ===== */
+.product-image img{
+  width:100%;
+  max-width:420px;        /* desktop limit */
+  aspect-ratio: 9 / 16;   /* 🔥 EXACT RATIO */
+  object-fit: contain;    /* 🔥 FULL IMAGE */
+  background:#000;
+  border-radius:12px;
+}
+
+/* INFO */
+.product-info{
+  max-width:420px;
+}
+.product-info h1{
+  font-size:20px;
+  margin-bottom:10px;
+}
+.p-price{
+  font-size:22px;
+  font-weight:bold;
+  color:#00ff88;
+  margin-bottom:10px;
+}
+.p-desc{
+  font-size:14px;
+  color:#ccc;
+  margin-bottom:20px;
+}
+
+/* BUTTONS */
+.buy-btn,
+.download-btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  font-weight:bold;
+  font-size:15px;
+  cursor:pointer;
+  margin-bottom:10px;
+}
+.buy-btn{
+  background:linear-gradient(90deg,#00ffee,#00ff88);
+}
+.download-btn{
+  background:#111;
+  color:#00ff88;
+  border:1px solid #00ff88;
+  display:none;
+  text-align:center;
+  text-decoration:none;
+}
+
+/* ===== MOBILE FIX ===== */
+/* ===== PRODUCT PAGE MOBILE FIX (FLIPKART STYLE) ===== */
+@media(max-width:768px){
+
+  .product-wrap{
+    display:flex;
+    flex-direction:column;     /* 🔥 MOST IMPORTANT */
+    padding:12px;
+    gap:14px;
+  }
+
+  /* FULL IMAGE ON TOP */
+  .product-image{
+    width:100%;
+    display:flex;
+    justify-content:center;
+  }
+
+  .product-image img{
+    width:100%;
+    max-width:100%;
+    aspect-ratio:9/16;         /* 🔥 FULL POSTER */
+    object-fit:contain;
+    background:#000;
+    border-radius:12px;
+  }
+
+  /* INFO BELOW IMAGE */
+  .product-info{
+    width:100%;
+  }
+
+  .product-info h1{
+    font-size:18px;
+    line-height:1.3;
+    margin-top:6px;
+  }
+
+  .p-price{
+    font-size:22px;
+    margin:8px 0 14px;
+  }
+
+  .buy-btn{
+    width:100%;
+    padding:16px;
+    font-size:16px;
+    border-radius:12px;
+  }
+
+  .inside-box{
+    margin-top:20px;
+    background:#0f0f0f;
+    border:1px solid #1f1f1f;
+    border-radius:10px;
+    padding:14px;
+  }
+
+  .inside-box h3{
+    font-size:15px;
+    margin-bottom:10px;
+  }
+
+  .inside-box ul{
+    padding-left:18px;
+  }
+
+  .inside-box li{
+    font-size:14px;
+    margin-bottom:6px;
+    color:#ccc;
+  }
+}
+/* ===== MENU DROPDOWN FIX ===== */
+.dropdown{
+  display:none;
+}
+.dropdown.show{
+  display:block;
+}
+
+/* ===== DESKTOP CENTER ALIGN ===== */
+.page-center{
+  max-width:1200px;
+  margin:auto;              /* 🔥 center on PC */
+}
+
+/* Product image center on desktop */
+@media(min-width:769px){
+  .product-wrap{
+    justify-content:center;
+  }
+}
+/* DESCRIPTION */
+.p-desc{
+  font-size:14px;
+  color:#ccc;
+  margin:14px 0;
+}
+
+/* INSIDE BOX */
+.inside-box,
+.review-box{
+  margin-top:20px;
+  background:#0f0f0f;
+  border:1px solid #1f1f1f;
+  border-radius:10px;
+  padding:14px;
+}
+
+.inside-box h3,
+.review-box h3{
+  font-size:15px;
+  margin-bottom:10px;
+}
+
+.inside-box ul{
+  padding-left:18px;
+}
+
+.inside-box li{
+  font-size:14px;
+  margin-bottom:6px;
+  color:#ccc;
+}
+
+/* REVIEWS */
+.review{
+  border-bottom:1px solid #222;
+  padding:8px 0;
+}
+.review:last-child{
+  border-bottom:none;
+}
+.review p{
+  font-size:13px;
+  color:#aaa;
+}
+/* ===== MODERN DROPDOWN MENU ===== */
+.dropdown{
+  position:absolute;
+  right:0;
+  top:48px;
+  background:linear-gradient(180deg,#0f0f0f,#080808);
+  border:1px solid #1f1f1f;
+  border-radius:14px;
+  min-width:210px;
+  padding:6px;
+  box-shadow:0 10px 40px rgba(0,255,238,0.15);
+  opacity:0;
+  transform:translateY(-10px) scale(0.98);
+  pointer-events:none;
+  transition:all 0.25s ease;
+  z-index:1000;
+}
+
+.dropdown.show{
+  opacity:1;
+  transform:translateY(0) scale(1);
+  pointer-events:auto;
+}
+
+.dropdown a{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:12px 14px;
+  color:#eaeaea;
+  text-decoration:none;
+  font-size:14px;
+  border-radius:10px;
+  transition:background 0.2s, color 0.2s;
+}
+
+.dropdown a:hover{
+  background:#00ffee22;
+  color:#00ffee;
+}
+.logo-box{
+  display:flex;
+  align-items:center;
+  gap:10px;
+}
+.site-logo{
+  width:36px;
+  height:36px;
+}
+.logo-text{
+  font-size:18px;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+/* ===== CENTER LAYOUT ===== */
+.page-center{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+
+/* ===== SECTION TITLE ===== */
+.section-title{
+  font-size:18px;
+  margin-bottom:16px;
+  font-weight:bold;
+}
+
+/* ===== OPEN BUTTON ===== */
+.open-btn{
+  display:block;
+  margin-top:10px;
+  padding:10px;
+  text-align:center;
+  border-radius:8px;
+  background:#00ffee22;
+  color:#00ffee;
+  text-decoration:none;
+}
+
+/* ===== TRANSACTIONS ===== */
+.tx-box{
+  background:#0f0f0f;
+  border:1px solid #1f1f1f;
+  border-radius:12px;
+}
+.tx-row{
+  display:flex;
+  justify-content:space-between;
+  padding:14px;
+  border-bottom:1px solid #222;
+}
+.tx-row:last-child{
+  border-bottom:none;
+}
+.tx-right{
+  text-align:right;
+}
+.tx-status{
+  font-size:12px;
+  color:#00ff88;
+}
+/* ===== PRODUCT PAGE POLISH ===== */
+.p-desc{
+  font-size:14px;
+  color:#ccc;
+  line-height:1.5;
+  margin:12px 0 18px;
+}
+
+.muted{
+  color:#777;
+  font-size:13px;
+}
+
+/* INSIDE + REVIEWS */
+.inside-box,
+.review-box{
+  margin-top:22px;
+  background:#0f0f0f;
+  border:1px solid #1f1f1f;
+  border-radius:14px;
+  padding:16px;
+}
+
+.inside-box h3,
+.review-box h3{
+  font-size:16px;
+  margin-bottom:10px;
+}
+
+.inside-box li{
+  margin-bottom:6px;
+  font-size:14px;
+  color:#ccc;
+}
+
+/* REVIEWS */
+.review{
+  border-bottom:1px solid #222;
+  padding:10px 0;
+}
+.review:last-child{
+  border-bottom:none;
+}
+
+/* ===== MORE PRODUCTS ===== */
+.more-section{
+  margin:30px 0;
+  padding:0 14px;
+}
+.more-section h3{
+  font-size:17px;
+  margin-bottom:14px;
+}
+/* ===== PROFILE PAGE ===== */
+.profile-card{
+  max-width:420px;
+  margin:auto;
+  background:#0f0f0f;
+  border:1px solid #1f1f1f;
+  border-radius:18px;
+  padding:24px;
+  text-align:center;
+}
+
+.profile-avatar{
+  width:90px;
+  height:90px;
+  border-radius:50%;
+  margin-bottom:12px;
+}
+
+.profile-card h2{
+  margin-bottom:20px;
+}
+
+.profile-card label{
+  display:block;
+  text-align:left;
+  font-size:13px;
+  margin-bottom:4px;
+  color:#aaa;
+}
+
+.profile-card input{
+  width:100%;
+  padding:12px;
+  margin-bottom:14px;
+  border-radius:10px;
+  border:1px solid #2a2a2a;
+  background:#111;
+  color:#fff;
+}
+
+.profile-card input:disabled{
+  opacity:0.6;
+}
+
+.profile-card button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  font-size:15px;
+  font-weight:bold;
+  background:linear-gradient(90deg,#00ffee,#00ff88);
+  cursor:pointer;
+}
+
+.profile-note{
+  font-size:12px;
+  color:#777;
+  margin-top:12px;
+}
+/* ===== MAIN TOP BAR (ALL PAGES) ===== */
+.main-top-bar{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:12px 16px;
+  background:#0a0a0a;
+  border-bottom:1px solid #1f1f1f;
+}
+
+/* MENU ICON */
+.menu-icon{
+  background:none;
+  border:none;
+  color:white;
+  font-size:22px;
+  cursor:pointer;
+}
+/* ===== SAFE PRODUCT PAGE OVERRIDE (NO CONFLICT) ===== */
+@media(min-width:900px){
+  .product-page .product-wrap{
+    justify-content:flex-start;
+  }
+}
+/* ===== PRODUCT PAGE SECTION BOX FIX ===== */
+
+.product-page .inside-box,
+.product-page .review-box,
+.product-page .more-section{
+  background:#0f0f0f;
+  border:1px solid #1f1f1f;
+  border-radius:14px;
+  padding:18px;
+  margin-top:24px;
+}
+
+/* Headings inside boxes */
+.product-page .inside-box h3,
+.product-page .review-box h3,
+.product-page .more-section h3{
+  font-size:16px;
+  font-weight:bold;
+  margin-bottom:12px;
+  padding-bottom:8px;
+  border-bottom:1px solid #222;
+}
+
+/* What you will get list */
+.product-page .inside-box ul{
+  margin-top:10px;
+  padding-left:18px;
+}
+
+.product-page .inside-box li{
+  margin-bottom:8px;
+  font-size:14px;
+  line-height:1.5;
+  color:#ccc;
+}
+
+/* Reviews text */
+.product-page .review-box p,
+.product-page .review-box .muted{
+  margin-top:8px;
+  font-size:14px;
+  color:#aaa;
+}
+
+/* You may also like spacing */
+.product-page .more-section{
+  margin-bottom:40px;
+}

@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Add Product</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<div class="main full">
+  <div class="topbar">
+    <div class="title">Add Product</div>
+  </div>
+
+  <div class="content form-box">
+
+    <input id="title" placeholder="Product title">
+    <input id="price" type="number" placeholder="Price ₹">
+    <input id="image" placeholder="Image URL (9:16)">
+    <textarea id="description" placeholder="Description (2–3 lines)"></textarea>
+    <textarea id="inside" placeholder="What you will get (comma separated)"></textarea>
+    <input id="fileUrl" placeholder="ZIP / Drive download link">
+    <input id="paymentUrl" placeholder="Payment page URL">
+
+    <button onclick="saveProduct()">SAVE PRODUCT</button>
+  </div>
+</div>
+
+<script type="module">
+import { db } from "../firebase.js";
+import { addDoc, collection } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+window.saveProduct = async ()=>{
+  if(!title.value || !price.value){
+    alert("Fill required fields");
+    return;
+  }
+
+  await addDoc(collection(db,"products"),{
+    title: title.value,
+    price: Number(price.value),
+    image: image.value,
+    description: description.value,
+    inside: inside.value.split(",").map(i=>i.trim()),
+    fileUrl: fileUrl.value,
+    paymentUrl: paymentUrl.value,
+    createdAt: Date.now()
+  });
+
+  alert("Product added");
+  location.href = "products.html";
+};
+</script>
+
+</body>
+</html>

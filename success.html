@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Success</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<h2>Payment Successful ✅</h2>
+<p id="statusText">Processing your order...</p>
+
+<button id="downloadBtn" style="display:none;">DOWNLOAD</button>
+
+<script type="module">
+import { db, auth } from "./firebase.js";
+import {
+  doc,
+  getDoc,
+  updateDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+// 🔥 YE FINAL CLEANING CODE 🔥
+let query = window.location.search.substring(1);  // ? हटा दो
+
+// Multiple &amp; (जितने भी amp हो) को & में convert करो
+while (query.includes('&amp;')) {
+  query = query.replace(/&amp;/g, '&');
+}
+
+// %26 को भी & में (extra safety)
+query = query.replace(/%26/g, '&');
+
+const params = new URLSearchParams(query);
+
+const productId = params.get("id");
+const orderId = params.get("order");
+
+// ZapUPI parameters (अगर आते हैं)
+        // ZapUPI parameters capture करो
+        const txnId = params.get("txn_id") || params.get("txnid") || params.get("payment_id") || "";
+        const status = params.get("status") || params.get("payment_status") || "SUCCESS";
+        const amount = params.get("amount") || "";
+
+        if (!txnId || status !== "SUCCESS") {
+            statusText.innerText = "Payment failed or invalid";
+            return;
+        }
+
+        // Server-side verify कराओ
+        try {
+            const response = await fetch("http://localhost:5000/api/verify-payment", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    order: orderId,
+                    txn_id: txnId,
+                    status: status,
+                    amount: amount
+                })
+            });
+
+            const result = await response.json();
+
+            if (result.status === "success") {
+                statusText.innerText = "Payment successful! Your product is ready 🎉";
+                downloadBtn.style.display = "block";
+                downloadBtn.onclick = () => {
+                    window.location.href = product.fileUrl;
+                };
+            } else {
+                statusText.innerText = "Verification failed: " + result.message;
+            }
+
+        } catch (err) {
+            console.error(err);
+            statusText.innerText = "Verification error – contact support";
+    }
+</script>
+
+</body>
+</html>

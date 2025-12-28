@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Digital World</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<header class="top-bar">
+  <div class="logo-box">
+    <img src="logo.png" class="site-logo">
+    <span class="logo-text">DIGITAL WORLD</span>
+  </div>
+
+  <div class="menu">
+    <img src="https://i.ibb.co/2q5Y3ZJ/user.png" onclick="toggleMenu()">
+    <div class="dropdown" id="menuBox">
+      <a href="profile.html">👤 Profile</a>
+      <a href="your-products.html">📦 Your Products</a>
+      <a href="transaction-history.html">💳 Transactions</a>
+      <a href="#" id="logoutBtn">🚪 Logout</a>
+    </div>
+  </div>
+</header>
+
+<!-- CENTER WRAPPER (DESKTOP ONLY EFFECT) -->
+<div class="page-center">
+  <section class="product-grid" id="products"></section>
+</div>
+
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged, signOut }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+onAuthStateChanged(auth, user=>{
+  if(!user) location.href="login.html";
+});
+
+logoutBtn.onclick = async ()=>{
+  await signOut(auth);
+  location.href="login.html";
+};
+
+const container = document.getElementById("products");
+const snap = await getDocs(collection(db,"products"));
+
+snap.forEach(doc=>{
+  const p = doc.data();
+  container.innerHTML += `
+    <div class="product-card" onclick="openProduct('${doc.id}')">
+      <img src="${p.image}">
+      <div class="product-title">${p.title}</div>
+      <div class="product-price">₹${p.price}</div>
+    </div>
+  `;
+});
+
+window.openProduct = id=>{
+  location.href="product.html?id="+id;
+};
+</script>
+
+<script>
+function toggleMenu(){
+  document.getElementById("menuBox").classList.toggle("show");
+}
+</script>
+
+</body>
+</html>

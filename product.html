@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Product</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<header class="product-top">
+  <button onclick="history.back()">←</button>
+  <span>Product</span>
+</header>
+
+<!-- PRODUCT -->
+<div class="product-wrap">
+
+  <div class="product-image">
+    <img id="productImg" />
+  </div>
+
+  <div class="product-info">
+    <h1 id="productTitle">Loading...</h1>
+    <div class="p-price" id="productPrice"></div>
+    <p class="p-desc" id="productDesc"></p>
+
+    <button id="buyBtn" class="buy-btn">BUY NOW</button>
+
+    <div class="inside-box">
+      <h3>What you will get</h3>
+      <ul id="insideList"></ul>
+    </div>
+
+    <div class="review-box">
+      <h3>Reviews</h3>
+      <p class="muted">No reviews yet</p>
+    </div>
+  </div>
+
+</div>
+
+<!-- SCRIPT -->
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+const params = new URLSearchParams(location.search);
+const productId = params.get("id");
+const orderId = params.get("order");
+
+const buyBtn = document.getElementById("buyBtn");
+
+let PRODUCT, USER;
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return location.href="login.html";
+  USER = user;
+  await loadProduct();
+  if (orderId) unlockDownload(); // 🔓
+});
+
+async function loadProduct(){
+  const snap = await getDoc(doc(db,"products",productId));
+  PRODUCT = snap.data();
+  productImg.src = PRODUCT.image;
+  productTitle.innerText = PRODUCT.title;
+  productPrice.innerText = "₹"+PRODUCT.price;
+  productDesc.innerText = PRODUCT.description || "";
+}
+
+async function buyNow(){
+  buyBtn.innerText="Processing...";
+  buyBtn.disabled=true;
+
+  const res = await fetch("http://127.0.0.1:5000/api/create-order",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body: JSON.stringify({
+  productId,
+  userId: USER.uid
+})
+  });
+
+  const data = await res.json();
+  if(data.status!=="success"){
+    alert(data.message);
+    resetBtn();
+    return;
+  }
+  location.href = data.payment_url;
+}
+
+function unlockDownload(){
+  buyBtn.innerText="DOWNLOAD";
+  buyBtn.disabled=false;
+  buyBtn.onclick=()=>location.href=PRODUCT.fileUrl;
+}
+
+function resetBtn(){
+  buyBtn.innerText="BUY NOW";
+  buyBtn.disabled=false;
+}
+
+buyBtn.addEventListener("click", buyNow);
+</script>
+
+
+</body>
+</html>

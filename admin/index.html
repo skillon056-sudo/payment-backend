@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Admin Dashboard</title>
+<link rel="stylesheet" href="admin.css">
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<div class="sidebar">
+  <div class="brand">
+    <img src="../logo.png">
+    <span>DIGITAL WORLD</span>
+  </div>
+
+  <a href="index.html" class="active">📊 Dashboard</a>
+  <a href="products.html">📦 Products</a>
+  <a href="users.html">👤 Users</a>
+  <a href="transactions.html">💳 Transactions</a>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="title">Dashboard</div>
+    <div class="admin">Admin Panel</div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+
+    <div class="cards">
+      <div class="card">
+        <h4>Total Users</h4>
+        <div class="value" id="usersCount">0</div>
+      </div>
+
+      <div class="card">
+        <h4>Total Products</h4>
+        <div class="value" id="productsCount">0</div>
+      </div>
+
+      <div class="card">
+        <h4>Total Orders</h4>
+        <div class="value" id="ordersCount">0</div>
+      </div>
+
+      <div class="card">
+        <h4>Total Revenue</h4>
+        <div class="value" id="revenue">₹0</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script type="module">
+import { db } from "../firebase.js";
+import { collection, getDocs } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+/* DEBUG helper */
+async function count(col){
+  const snap = await getDocs(collection(db,col));
+  console.log(col, "=>", snap.size);
+  return snap.size;
+}
+
+/* COUNT */
+const users = await count("users");      // 👈 agar 0 aaye → users collection empty
+const products = await count("products");// 👈 agar 0 aaye → wrong collection
+const orders = await count("orders");    // 👈 payment nahi hua to 0 normal
+
+usersCount.innerText = users;
+productsCount.innerText = products;
+ordersCount.innerText = orders;
+
+/* REVENUE */
+let total = 0;
+const orderSnap = await getDocs(collection(db,"orders"));
+orderSnap.forEach(o=>{
+  if(o.data().status === "paid"){
+    total += Number(o.data().price || 0);
+  }
+});
+revenue.innerText = "₹" + total;
+</script>
+
+
+
+</body>
+</html>

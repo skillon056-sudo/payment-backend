@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Your Products</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<script>
+function toggleMenu(){
+  const menu = document.getElementById("menuBox");
+  if(menu){
+    menu.classList.toggle("show");
+  }
+}
+</script>
+<body>
+
+<header class="main-top-bar">
+  <div class="logo-box">
+    <img src="logo.png" class="site-logo">
+    <span class="logo-text">DIGITAL WORLD</span>
+  </div>
+
+  <div class="menu">
+    <button class="menu-icon" onclick="toggleMenu()">☰</button>
+
+    <div class="dropdown" id="menuBox">
+      <a href="index.html">🏠 Home</a>
+      <a href="profile.html">👤 Profile</a>
+      <a href="your-products.html">📦 Your Products</a>
+      <a href="transaction-history.html">💳 Transactions</a>
+      <a href="#" id="logoutBtn">🚪 Logout</a>
+    </div>
+  </div>
+</header>
+
+
+<div class="page-center">
+  <div class="section-title">Purchased Products</div>
+  <div class="product-grid" id="list"></div>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { onAuthStateChanged } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, query, where, getDocs } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+onAuthStateChanged(auth, async user=>{
+  if(!user){ location.href="login.html"; return; }
+
+  const q = query(
+    collection(db,"orders"),
+    where("userId","==",user.uid),
+    where("status","==","paid")
+  );
+
+  const snap = await getDocs(q);
+
+  if(snap.empty){
+    list.innerHTML = "<p>No products purchased yet</p>";
+    return;
+  }
+
+  snap.forEach(d=>{
+    const p = d.data();
+    list.innerHTML += `
+      <div class="product-card">
+        <div class="product-title">${p.productTitle}</div>
+        <div class="product-price">₹${p.price}</div>
+        <a class="open-btn" href="product.html?id=${p.productId}">
+          Open Product
+        </a>
+      </div>
+    `;
+  });
+});
+</script>
+
+</body>
+</html>
