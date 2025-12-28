@@ -17,28 +17,26 @@ ZAPUPI_SECRET = "8f6d1397dcf23599c528228554d79692"
 FRONTEND_BASE = "http://localhost:8000"
 
 # ================= FIREBASE INIT =================
-import os
-
-# Firebase safe initialization for Render
-db = None  # default None
+db = None  # default
 
 try:
-    # Local testing के लिए file use करो
-    if os.path.exists("serviceAccountKey.json"):
-        cred = credentials.Certificate("serviceAccountKey.json")
-        firebase_admin.initialize_app(cred)
-        db = firestore.client()
-        print("Firebase connected from local file")
+    # Render पर env variable से key पढ़ो
+    firebase_key_str = os.getenv("FIREBASE_SERVICE_ACCOUNT")
+    if firebase_key_str:
+        service_account_info = json.loads(firebase_key_str)
+        cred = credentials.Certificate(service_account_info)
+        print("Firebase connected from Render env variable")
     else:
-        print("No Firebase key file found – running without Firebase (Render mode)")
+        # Local testing के लिए file use करो
+        cred = credentials.Certificate("serviceAccountKey.json")
+        print("Firebase connected from local file")
+
+    firebase_admin.initialize_app(cred)
+    db = firestore.client()
+
 except Exception as e:
-    print("Firebase init error (normal on Render):", e)
-
-# अगर db None है तो API में check कर लो (नीचे example)
-# example in create_order function:
-# if db is None:
-#     return jsonify({"status": "error", "message": "Database not available"}), 500
-
+    print("Firebase init failed:", e)
+    db = None  # crash नहीं होगा
 # ================= FLASK INIT =================
 app = Flask(__name__)
 CORS(app)
