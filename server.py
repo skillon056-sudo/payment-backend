@@ -130,7 +130,7 @@ def verify_payment():
         if order_data.get("status") == "failed":
             return jsonify({"status": "error", "allowDownload": False, "message": "Payment failed"})
 
-        # ZapUPI से single check
+        # ZapUPI status check
         payload = {
             "token_key": ZAPUPI_TOKEN,
             "secret_key": ZAPUPI_SECRET,
@@ -139,9 +139,10 @@ def verify_payment():
 
         res = requests.post("https://api.zapupi.com/api/order-status", data=payload, timeout=30)
         result = res.json()
-        print("ZapUPI status response:", result)
+        print("ZapUPI status response:", result)  # debug के लिए
 
-        if result.get("status") == "success" and result.get("data", {}).get("status") == "success":
+        # SUCCESS CHECK – ZapUPI "Success" भेजता है capital S से
+        if result.get("status") == "success" and result.get("data", {}).get("status") == "Success":
             order_ref.update({
                 "status": "paid",
                 "paidAt": firestore.SERVER_TIMESTAMP,
@@ -149,11 +150,7 @@ def verify_payment():
             })
             return jsonify({"status": "success", "allowDownload": True})
 
-        # Not success – mark failed
-        order_ref.update({
-            "status": "failed",
-            "failedAt": firestore.SERVER_TIMESTAMP
-        })
+        # Not success
         return jsonify({"status": "error", "allowDownload": False, "message": "Payment not successful yet"})
 
     except Exception as e:
