@@ -14,7 +14,7 @@ ZAPUPI_CREATE_URL = "https://api.zapupi.com/api/create-order"
 ZAPUPI_TOKEN = "d6a35a8e8f49bafd82ba29f01589225a"
 ZAPUPI_SECRET = "8f6d1397dcf23599c528228554d79692"
 
-FRONTEND_BASE = "http://localhost:8000"  # production में live URL डालना
+FRONTEND_BASE = "http://localhost:8000"  # production में live frontend URL डालना
 
 # ================= FIREBASE INIT =================
 db = None
@@ -63,7 +63,6 @@ def create_order():
 
         order_id = str(int(time.time() * 1000))
 
-        # Pending order create
         db.collection("orders").document(order_id).set({
             "orderId": order_id,
             "userId": user_id,
@@ -73,7 +72,7 @@ def create_order():
             "createdAt": firestore.SERVER_TIMESTAMP
         })
 
-        redirect_url = f"{FRONTEND_BASE}/success.html?id={product_id}&order={order_id}"
+        redirect_url = f"{FRONTEND_BASE}/success.html?order={order_id}"
 
         payload = {
             "token_key": ZAPUPI_TOKEN,
@@ -102,45 +101,61 @@ def create_order():
         print("CREATE ORDER ERROR:", e)
         return jsonify({"status": "error", "message": "Server error"}), 500
 
-# ================= ZAPUPI WEBHOOK =================
-@app.route("/zapupi-webhook", methods=["POST"])
-def zapupi_webhook():
+# ================= VERIFY PAYMENT (ORDER STATUS CHECK + UPDATE) =================
+@app.route("/api/verify-payment", methods=["POST"])
+def verify_payment():
     if db is None:
-        return "DB not available", 500
+        return jsonify({"status": "error", "message": "Database not available"}), 500
 
     try:
-        data = request.form.to_dict() or request.json or {}
-
-        order_id = data.get("order_id")
-        gateway_status = data.get("status")
-        txn_id = data.get("txn_id") or "webhook"
+        data = request.json
+        order_id = data.get("order")
 
         if not order_id:
-            return "Missing order_id", 400
+            return jsonify({"status": "error", "message": "Missing order"}), 400
 
         order_ref = db.collection("orders").document(order_id)
         order_snap = order_ref.get()
 
         if not order_snap.exists:
-            return "Order not found", 404
+            return jsonify({"status": "error", "message": "Order not found"}), 404
 
-        if gateway_status == "success":
+        order_data = order_snap.to_dict()
+
+        if order_data.get("status") in ["paid", "failed"]:
+            return jsonify({
+                "status": "success" if order_data.get("status") == "paid" else "error",
+                "allowDownload": order_data.get("status") == "paid"
+            })
+
+        # ZapUPI Order Status API call
+        payload = {
+            "token_key": ZAPUPI_TOKEN,
+            "secret_key": ZAPUPI_SECRET,
+            "order_id": order_id
+        }
+
+        res = requests.post("https://api.zapupi.com/api/order-status", data=payload, timeout=30)
+        result = res.json()
+
+        if result.get("status") == "success" and result.get("data", {}).get("status") == "success":
             order_ref.update({
                 "status": "paid",
                 "paidAt": firestore.SERVER_TIMESTAMP,
-                "txnId": txn_id
+                "txnId": result["data"].get("txn_id", "unknown")
             })
+            return jsonify({"status": "success", "allowDownload": True})
+
         else:
             order_ref.update({
                 "status": "failed",
                 "failedAt": firestore.SERVER_TIMESTAMP
             })
-
-        return "OK", 200
+            return jsonify({"status": "error", "allowDownload": False})
 
     except Exception as e:
-        print("WEBHOOK ERROR:", e)
-        return "Error", 500
+        print("VERIFY ERROR:", e)
+        return jsonify({"status": "error", "allowDownload": False}), 500
 
 # ================= RUN APP =================
 if __name__ == "__main__":
