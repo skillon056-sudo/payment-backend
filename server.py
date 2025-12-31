@@ -101,7 +101,7 @@ def create_order():
         print("CREATE ORDER ERROR:", e)
         return jsonify({"status": "error", "message": "Server error"}), 500
 
-# ================= VERIFY PAYMENT (ORDER STATUS CHECK + UPDATE) =================
+# ================= VERIFY PAYMENT (WITH RETRY FOR DELAY) =================
 @app.route("/api/verify-payment", methods=["POST"])
 def verify_payment():
     if db is None:
@@ -122,41 +122,53 @@ def verify_payment():
 
         order_data = order_snap.to_dict()
 
-        if order_data.get("status") in ["paid", "failed"]:
-            return jsonify({
-                "status": "success" if order_data.get("status") == "paid" else "error",
-                "allowDownload": order_data.get("status") == "paid"
-            })
-
-        # ZapUPI Order Status API call
-        payload = {
-            "token_key": ZAPUPI_TOKEN,
-            "secret_key": ZAPUPI_SECRET,
-            "order_id": order_id
-        }
-
-        res = requests.post("https://api.zapupi.com/api/order-status", data=payload, timeout=30)
-        result = res.json()
-
-        if result.get("status") == "success" and result.get("data", {}).get("status") == "success":
-            order_ref.update({
-                "status": "paid",
-                "paidAt": firestore.SERVER_TIMESTAMP,
-                "txnId": result["data"].get("txn_id", "unknown")
-            })
+        # Already paid
+        if order_data.get("status") == "paid":
             return jsonify({"status": "success", "allowDownload": True})
 
-        else:
-            order_ref.update({
-                "status": "failed",
-                "failedAt": firestore.SERVER_TIMESTAMP
-            })
-            return jsonify({"status": "error", "allowDownload": False})
+        # Already failed
+        if order_data.get("status") == "failed":
+            return jsonify({"status": "error", "allowDownload": False, "message": "Payment failed"})
+
+        # Retry logic for ZapUPI delay
+        max_attempts = 10
+        delay = 3  # seconds
+
+        for attempt in range(max_attempts):
+            payload = {
+                "token_key": ZAPUPI_TOKEN,
+                "secret_key": ZAPUPI_SECRET,
+                "order_id": order_id
+            }
+
+            res = requests.post("https://api.zapupi.com/api/order-status", data=payload, timeout=30)
+            result = res.json()
+
+            print(f"Attempt {attempt + 1}: ZapUPI status response:", result)
+
+            if result.get("status") == "success" and result.get("data", {}).get("status") == "success":
+                order_ref.update({
+                    "status": "paid",
+                    "paidAt": firestore.SERVER_TIMESTAMP,
+                    "txnId": result["data"].get("txn_id", "unknown")
+                })
+                return jsonify({"status": "success", "allowDownload": True})
+
+            # Wait before next attempt (except last)
+            if attempt < max_attempts - 1:
+                time.sleep(delay)
+
+        # All attempts failed → mark as failed
+        order_ref.update({
+            "status": "failed",
+            "failedAt": firestore.SERVER_TIMESTAMP
+        })
+        return jsonify({"status": "error", "allowDownload": False, "message": "Payment verification timed out"})
 
     except Exception as e:
         print("VERIFY ERROR:", e)
-        return jsonify({"status": "error", "allowDownload": False}), 500
-
+        return jsonify({"status": "error", "allowDownload": False, "message": "Server error"}), 500
+    
 # ================= RUN APP =================
 if __name__ == "__main__":
     app.run(port=5000, debug=False)
