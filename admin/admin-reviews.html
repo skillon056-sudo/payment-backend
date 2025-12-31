@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin - Add Review</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body{
+  margin:0;
+  background:#0b0b0b;
+  color:#fff;
+  font-family:system-ui;
+}
+.wrap{
+  max-width:500px;
+  margin:40px auto;
+  padding:20px;
+  background:#111;
+  border:1px solid #222;
+  border-radius:14px;
+}
+h2{margin-top:0}
+input,textarea{
+  width:100%;
+  margin-bottom:14px;
+  padding:12px;
+  background:#0b0b0b;
+  border:1px solid #222;
+  color:#fff;
+  border-radius:10px;
+}
+button{
+  width:100%;
+  padding:14px;
+  background:#00ffc3;
+  border:none;
+  border-radius:12px;
+  font-weight:700;
+  cursor:pointer;
+}
+.status{
+  margin-top:12px;
+  font-size:14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="wrap">
+  <h2>Add Review (Admin)</h2>
+
+  <input id="productId" placeholder="Product Document ID">
+  <input id="name" placeholder="User Name">
+  <textarea id="message" placeholder="Review message"></textarea>
+
+  <button id="addBtn">Add Review</button>
+  <div class="status" id="status"></div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { addDoc, collection } 
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const addBtn = document.getElementById("addBtn");
+const status = document.getElementById("status");
+
+addBtn.addEventListener("click", async () => {
+  const productId = document.getElementById("productId").value.trim();
+  const name = document.getElementById("name").value.trim();
+  const message = document.getElementById("message").value.trim();
+
+  if(!productId || !name || !message){
+    status.innerText = "❌ Fill all fields";
+    status.style.color = "red";
+    return;
+  }
+
+  try{
+    addBtn.disabled = true;
+    addBtn.innerText = "Adding...";
+
+    await addDoc(collection(db,"reviews"),{
+      productId: productId,
+      name: name,
+      message: message,
+      source: "admin",
+      createdAt: new Date()
+    });
+
+    status.innerText = "✅ Review added successfully";
+    status.style.color = "#00ffc3";
+
+    document.getElementById("productId").value="";
+    document.getElementById("name").value="";
+    document.getElementById("message").value="";
+  }
+  catch(err){
+    console.error("ADD REVIEW ERROR:", err);
+    status.innerText = "❌ Error: " + err.message;
+    status.style.color = "red";
+  }
+
+  addBtn.disabled = false;
+  addBtn.innerText = "Add Review";
+});
+</script>
+
+</body>
+</html>

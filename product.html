@@ -1,25 +1,93 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Product</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Product</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+
+<style>
+/* ===== TOP BAR ===== */
+.product-top{
+  position:sticky;
+  top:0;
+  z-index:1000;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:12px 14px;
+  background:#0a0a0a;
+  border-bottom:1px solid #1f1f1f;
+}
+.product-top button{
+  background:none;
+  border:none;
+  color:#fff;
+  font-size:20px;
+  cursor:pointer;
+}
+.menu-box{
+  position:relative;
+}
+.dropdown{
+  position:absolute;
+  right:0;
+  top:40px;
+  background:#111;
+  border:1px solid #222;
+  border-radius:12px;
+  min-width:200px;
+  display:none;
+}
+.dropdown a{
+  display:block;
+  padding:12px 14px;
+  color:#fff;
+  text-decoration:none;
+}
+.dropdown a:hover{background:#1a1a1a;}
+.dropdown.show{display:block;}
+
+/* ===== REVIEW UI ===== */
+.review{
+  border-bottom:1px solid #222;
+  padding:10px 0;
+}
+.review b{display:block;margin-bottom:4px;}
+#reviewForm textarea{
+  width:100%;
+  padding:12px;
+  border-radius:10px;
+  background:#111;
+  border:1px solid #222;
+  color:#fff;
+  margin-bottom:10px;
+}
+</style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
+<!-- ===== TOP BAR ===== -->
 <header class="product-top">
   <button onclick="history.back()">←</button>
   <span>Product</span>
+  <div class="menu-box">
+    <button onclick="toggleMenu()">☰</button>
+    <div class="dropdown" id="menu">
+      <a href="index.html">🏠 Home</a>
+      <a href="your-products.html">📦 Your Products</a>
+      <a href="transaction-history.html">💳 Transactions</a>
+      <a href="profile.html">👤 Profile</a>
+    </div>
+  </div>
 </header>
 
-<!-- PRODUCT -->
+<!-- ===== PRODUCT ===== -->
 <div class="product-wrap">
 
   <div class="product-image">
-    <img id="productImg" />
+    <img id="productImg">
   </div>
 
   <div class="product-info">
@@ -29,24 +97,39 @@
 
     <button id="buyBtn" class="buy-btn">BUY NOW</button>
 
+    <!-- WHAT YOU GET -->
     <div class="inside-box">
       <h3>What you will get</h3>
       <ul id="insideList"></ul>
     </div>
 
+    <!-- REVIEWS -->
     <div class="review-box">
       <h3>Reviews</h3>
-      <p class="muted">No reviews yet</p>
+      <div id="reviewList"></div>
+      <p id="noReview" class="muted">No reviews yet</p>
+
+      <button id="reviewBtn" class="buy-btn">WRITE A REVIEW</button>
+
+      <div id="reviewForm" style="display:none;">
+        <textarea id="reviewMsg" placeholder="Write your review"></textarea>
+        <button id="submitReview" class="buy-btn">SUBMIT</button>
+      </div>
+
+      <p id="reviewStatus" class="muted"></p>
     </div>
   </div>
-
 </div>
 
-<!-- SCRIPT -->
+<!-- ===== SCRIPT ===== -->
 <script type="module">
 import { db, auth } from "./firebase.js";
-import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import {
+  doc, getDoc,
+  collection, query, where, getDocs, addDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from
+"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const params = new URLSearchParams(location.search);
 const productId = params.get("id");
@@ -56,34 +139,49 @@ const buyBtn = document.getElementById("buyBtn");
 
 let PRODUCT, USER;
 
+/* AUTH */
 onAuthStateChanged(auth, async (user) => {
   if (!user) return location.href="login.html";
   USER = user;
   await loadProduct();
-  if (orderId) unlockDownload(); // 🔓
+  await loadReviews();
+  if (orderId) unlockDownload();
 });
 
+/* LOAD PRODUCT */
 async function loadProduct(){
   const snap = await getDoc(doc(db,"products",productId));
   PRODUCT = snap.data();
+
   productImg.src = PRODUCT.image;
   productTitle.innerText = PRODUCT.title;
   productPrice.innerText = "₹"+PRODUCT.price;
   productDesc.innerText = PRODUCT.description || "";
+
+  insideList.innerHTML="";
+  if(Array.isArray(PRODUCT.inside)){
+    PRODUCT.inside.forEach(i=>{
+      insideList.innerHTML += `<li>${i}</li>`;
+    });
+  }
 }
 
+/* BUY */
 async function buyNow(){
   buyBtn.innerText="Processing...";
   buyBtn.disabled=true;
 
-  const res = await fetch("http://127.0.0.1:5000/api/create-order",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body: JSON.stringify({
-  productId,
-  userId: USER.uid
-})
-  });
+  const res = await fetch(
+    "https://payment-backend-kzcf.onrender.com/api/create-order",
+    {
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body: JSON.stringify({
+        productId,
+        userId: USER.uid
+      })
+    }
+  );
 
   const data = await res.json();
   if(data.status!=="success"){
@@ -106,8 +204,90 @@ function resetBtn(){
 }
 
 buyBtn.addEventListener("click", buyNow);
+
+/* LOAD REVIEWS */
+async function loadReviews(){
+  const q = query(collection(db,"reviews"),
+    where("productId","==",productId)
+  );
+  const snap = await getDocs(q);
+
+  reviewList.innerHTML="";
+  if(snap.empty){
+    noReview.style.display="block";
+    return;
+  }
+  noReview.style.display="none";
+
+  snap.forEach(d=>{
+    const r=d.data();
+    reviewList.innerHTML+=`
+      <div class="review">
+        <b>${r.name}</b>
+        <p>${r.message}</p>
+      </div>
+    `;
+  });
+}
+
+/* REVIEW LOGIC */
+reviewBtn.onclick = async ()=>{
+  const q1 = query(collection(db,"orders"),
+    where("userId","==",USER.uid),
+    where("productId","==",productId),
+    where("status","==","paid")
+  );
+  const orderSnap = await getDocs(q1);
+  if(orderSnap.empty){
+    reviewStatus.innerText="❌ You have to buy product first";
+    return;
+  }
+
+  const q2 = query(collection(db,"reviews"),
+    where("userId","==",USER.uid),
+    where("productId","==",productId)
+  );
+  const reviewSnap = await getDocs(q2);
+  if(reviewSnap.size>=2){
+    reviewStatus.innerText="❌ Max 2 reviews allowed";
+    return;
+  }
+
+  reviewForm.style.display="block";
+};
+
+submitReview.onclick = async ()=>{
+  const msg = reviewMsg.value.trim();
+  if(!msg) return;
+
+  await addDoc(collection(db,"reviews"),{
+    productId,
+    userId: USER.uid,
+    name: USER.displayName || "User",
+    message: msg,
+    source:"user",
+    createdAt:new Date()
+  });
+
+  reviewForm.style.display="none";
+  reviewMsg.value="";
+  reviewStatus.innerText="✅ Review submitted";
+  loadReviews();
+};
 </script>
 
+<script>
+function toggleMenu(){
+  document.getElementById("menu").classList.toggle("show");
+}
+</script>
+<a
+  href="https://wa.me/919999999999?text=Hello%20Support"
+  target="_blank"
+  class="whatsapp-float"
+>
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" />
+</a>
 
 </body>
 </html>
