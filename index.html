@@ -1,20 +1,42 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1635984204035154');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <meta charset="UTF-8">
-<title>Digital World</title>
+<title>Digital Cart</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-<!-- HEADER -->
 <header class="top-bar">
   <div class="logo-box">
     <img src="logo.png" class="site-logo">
-    <span class="logo-text">DIGITAL WORLD</span>
+    <span class="logo-text">DIGITAL CART</span>
   </div>
+
+  <div class="search-container desktop-only">
+    <input type="text" id="searchInput" placeholder="Search products..." class="search-input">
+  </div>
+
+  <button class="mobile-search-icon" id="mobileSearchBtn">🔍</button>
 
   <div class="menu">
     <img src="logo.png" onclick="toggleMenu()">
@@ -27,44 +49,105 @@
   </div>
 </header>
 
-<!-- CENTER WRAPPER (DESKTOP ONLY EFFECT) -->
+<div class="mobile-search-fixed" id="mobileSearchFixed">
+  <input type="text" id="mobileSearchInput" placeholder="Search products..." class="search-input">
+  <button id="closeSearchBtn">✕</button>
+</div>
+
 <div class="page-center">
   <section class="product-grid" id="products"></section>
 </div>
 
 <script type="module">
 import { db, auth } from "./firebase.js";
-import { collection, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { onAuthStateChanged, signOut }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
-onAuthStateChanged(auth, user=>{
-  if(!user) location.href="login.html";
+onAuthStateChanged(auth, user => {
+  if (!user) location.href = "login.html";
 });
 
-logoutBtn.onclick = async ()=>{
+document.getElementById("logoutBtn").onclick = async () => {
   await signOut(auth);
-  location.href="login.html";
+  location.href = "login.html";
 };
 
 const container = document.getElementById("products");
-const snap = await getDocs(collection(db,"products"));
+const searchInput = document.getElementById("searchInput");
+const mobileSearchInput = document.getElementById("mobileSearchInput");
+const mobileSearchBtn = document.getElementById("mobileSearchBtn");
+const mobileSearchFixed = document.getElementById("mobileSearchFixed");
+const closeSearchBtn = document.getElementById("closeSearchBtn");
 
-snap.forEach(doc=>{
+let allProducts = [];
+
+// Load products
+const snap = await getDocs(collection(db, "products"));
+snap.forEach(doc => {
   const p = doc.data();
-  container.innerHTML += `
-    <div class="product-card" onclick="openProduct('${doc.id}')">
-      <img src="${p.image}">
-      <div class="product-title">${p.title}</div>
-      <div class="product-price">₹${p.price}</div>
-    </div>
-  `;
+  p.id = doc.id;
+  p.isGood = p.isGood || false;
+  p.isUseful = p.isUseful || false;
+  p.isHotSelling = p.isHotSelling || false;
+  allProducts.push(p);
 });
 
-window.openProduct = id=>{
-  location.href="product.html?id="+id;
+// Hot Selling top पर
+allProducts.sort((a, b) => (b.isHotSelling - a.isHotSelling));
+
+renderProducts(allProducts);
+
+// Search
+function performSearch(value) {
+  const query = value.toLowerCase().trim();
+  const filtered = query === "" 
+    ? allProducts 
+    : allProducts.filter(p => p.title.toLowerCase().includes(query));
+  renderProducts(filtered);
+}
+
+searchInput.addEventListener("input", e => performSearch(e.target.value));
+mobileSearchInput.addEventListener("input", e => performSearch(e.target.value));
+
+// Mobile search
+mobileSearchBtn.onclick = () => {
+  mobileSearchFixed.style.display = "flex";
+  mobileSearchInput.focus();
 };
+
+closeSearchBtn.onclick = () => {
+  mobileSearchFixed.style.display = "none";
+  mobileSearchInput.value = "";
+  searchInput.value = "";
+  renderProducts(allProducts);
+};
+
+function renderProducts(products) {
+  if (products.length === 0) {
+    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px;">No products found</div>`;
+    return;
+  }
+
+  container.innerHTML = products.map(p => {
+    let tagsHTML = "";
+    if (p.isHotSelling) tagsHTML += `<span class="tag tag-hot">HOT SELLING</span>`;
+    if (p.isGood) tagsHTML += `<span class="tag tag-good">GOOD</span>`;
+    if (p.isUseful) tagsHTML += `<span class="tag tag-useful">USEFUL</span>`;
+
+    return `
+      <div class="product-card" onclick="openProduct('${p.id}')">
+        <img src="${p.image}">
+        <div class="product-info">
+          <div class="product-title">${p.title}</div>
+          ${tagsHTML ? `<div class="product-tags">${tagsHTML}</div>` : ""}
+          <div class="product-price">₹${p.price}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.openProduct = id => location.href = "product.html?id=" + id;
 </script>
 
 <script>
@@ -72,12 +155,137 @@ function toggleMenu(){
   document.getElementById("menuBox").classList.toggle("show");
 }
 </script>
-<a
-  href="https://wa.me/919999999999?text=Hello%20Support"
-  target="_blank"
-  class="whatsapp-float"
->
+
+<a href="https://wa.me/919999999999?text=Hello%20Support" target="_blank" class="whatsapp-float">
   <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" />
 </a>
+
+<style>
+  /* Product Info & Tags */
+  .product-info {
+    padding: 10px;
+    text-align: left;
+  }
+
+  .product-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 8px 0;
+  }
+
+  .tag {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+  }
+
+  /* GOOD - Green */
+  .tag-good {
+    background: #00ff88;
+    color: black;
+    box-shadow: 0 0 15px #00ff88;
+    animation: pulse-glow 2s infinite;
+  }
+
+  /* USEFUL - Orange */
+  .tag-useful {
+    background: #ffaa00;
+    color: black;
+    box-shadow: 0 0 15px #ffaa00;
+    animation: pulse-glow 2s infinite;
+  }
+
+  /* HOT SELLING - Red with white text + red glow */
+  .tag-hot {
+    background: #ff4444;
+    color: white; /* text white रहेगा */
+    box-shadow: 0 0 15px #ff4444;
+    animation: pulse-glow-red 2s infinite;
+  }
+
+  @keyframes pulse-glow {
+    0% { box-shadow: 0 0 15px currentColor; }
+    50% { box-shadow: 0 0 25px currentColor, 0 0 35px currentColor; }
+    100% { box-shadow: 0 0 15px currentColor; }
+  }
+
+  @keyframes pulse-glow-red {
+    0% { box-shadow: 0 0 15px #ff4444; }
+    50% { box-shadow: 0 0 30px #ff4444, 0 0 40px #ff0000; }
+    100% { box-shadow: 0 0 15px #ff4444; }
+  }
+
+  /* Search fixes (no change) */
+  .desktop-only {
+    display: flex;
+  }
+
+  .mobile-search-icon {
+    display: none;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
+    padding: 8px;
+  }
+
+  .mobile-search-fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: #0a0a0a;
+    padding: 12px 16px;
+    display: none;
+    align-items: center;
+    z-index: 999;
+    border-bottom: 1px solid #1f1f1f;
+  }
+
+  .mobile-search-fixed input {
+    flex: 1;
+    max-width: 600px;
+    margin-right: 10px;
+  }
+
+  #closeSearchBtn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 12px 16px;
+    background: #0f0f0f;
+    border: 1px solid #1f1f1f;
+    border-radius: 12px;
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+  }
+
+  .search-input:focus {
+    border-color: #00ffee;
+    box-shadow: 0 0 20px rgba(0, 255, 238, 0.3);
+  }
+
+  @media (max-width: 900px) {
+    .desktop-only {
+      display: none;
+    }
+    .mobile-search-icon {
+      display: block;
+    }
+  }
+</style>
+
 </body>
 </html>

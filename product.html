@@ -1,6 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1635984204035154');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <meta charset="UTF-8">
 <title>Product</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -63,6 +80,55 @@
   color:#fff;
   margin-bottom:10px;
 }
+
+/* ===== TAGS ON PRODUCT PAGE ===== */
+.product-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.tag {
+  padding: 6px 14px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: bold;
+  letter-spacing: 0.5px;
+}
+
+.tag-hot {
+  background: #ff4444;
+  color: white;
+  box-shadow: 0 0 15px #ff4444;
+  animation: pulse-glow-red 2s infinite;
+}
+
+.tag-good {
+  background: #00ff88;
+  color: black;
+  box-shadow: 0 0 15px #00ff88;
+  animation: pulse-glow 2s infinite;
+}
+
+.tag-useful {
+  background: #ffaa00;
+  color: black;
+  box-shadow: 0 0 15px #ffaa00;
+  animation: pulse-glow 2s infinite;
+}
+
+@keyframes pulse-glow {
+  0% { box-shadow: 0 0 15px currentColor; }
+  50% { box-shadow: 0 0 25px currentColor, 0 0 35px currentColor; }
+  100% { box-shadow: 0 0 15px currentColor; }
+}
+
+@keyframes pulse-glow-red {
+  0% { box-shadow: 0 0 15px #ff4444; }
+  50% { box-shadow: 0 0 30px #ff4444, 0 0 40px #ff0000; }
+  100% { box-shadow: 0 0 15px #ff4444; }
+}
 </style>
 </head>
 
@@ -92,6 +158,10 @@
 
   <div class="product-info">
     <h1 id="productTitle">Loading...</h1>
+
+    <!-- TAGS YAHAN DIKHENGI -->
+    <div class="product-tags" id="productTags"></div>
+
     <div class="p-price" id="productPrice"></div>
     <p class="p-desc" id="productDesc"></p>
 
@@ -136,6 +206,7 @@ const productId = params.get("id");
 const orderId = params.get("order");
 
 const buyBtn = document.getElementById("buyBtn");
+const productTags = document.getElementById("productTags");
 
 let PRODUCT, USER;
 
@@ -153,11 +224,19 @@ async function loadProduct(){
   const snap = await getDoc(doc(db,"products",productId));
   PRODUCT = snap.data();
 
-  productImg.src = PRODUCT.image;
-  productTitle.innerText = PRODUCT.title;
-  productPrice.innerText = "₹"+PRODUCT.price;
-  productDesc.innerText = PRODUCT.description || "";
+  document.getElementById("productImg").src = PRODUCT.image;
+  document.getElementById("productTitle").innerText = PRODUCT.title;
+  document.getElementById("productPrice").innerText = "₹"+PRODUCT.price;
+  document.getElementById("productDesc").innerText = PRODUCT.description || "";
 
+  // TAGS GENERATE
+  let tagsHTML = "";
+  if (PRODUCT.isHotSelling) tagsHTML += `<span class="tag tag-hot">HOT SELLING</span>`;
+  if (PRODUCT.isGood) tagsHTML += `<span class="tag tag-good">GOOD</span>`;
+  if (PRODUCT.isUseful) tagsHTML += `<span class="tag tag-useful">USEFUL</span>`;
+  productTags.innerHTML = tagsHTML;
+
+  const insideList = document.getElementById("insideList");
   insideList.innerHTML="";
   if(Array.isArray(PRODUCT.inside)){
     PRODUCT.inside.forEach(i=>{
@@ -212,12 +291,13 @@ async function loadReviews(){
   );
   const snap = await getDocs(q);
 
+  const reviewList = document.getElementById("reviewList");
   reviewList.innerHTML="";
   if(snap.empty){
-    noReview.style.display="block";
+    document.getElementById("noReview").style.display="block";
     return;
   }
-  noReview.style.display="none";
+  document.getElementById("noReview").style.display="none";
 
   snap.forEach(d=>{
     const r=d.data();
@@ -231,7 +311,7 @@ async function loadReviews(){
 }
 
 /* REVIEW LOGIC */
-reviewBtn.onclick = async ()=>{
+document.getElementById("reviewBtn").onclick = async ()=>{
   const q1 = query(collection(db,"orders"),
     where("userId","==",USER.uid),
     where("productId","==",productId),
@@ -239,7 +319,7 @@ reviewBtn.onclick = async ()=>{
   );
   const orderSnap = await getDocs(q1);
   if(orderSnap.empty){
-    reviewStatus.innerText="❌ You have to buy product first";
+    document.getElementById("reviewStatus").innerText="❌ You have to buy product first";
     return;
   }
 
@@ -249,15 +329,15 @@ reviewBtn.onclick = async ()=>{
   );
   const reviewSnap = await getDocs(q2);
   if(reviewSnap.size>=2){
-    reviewStatus.innerText="❌ Max 2 reviews allowed";
+    document.getElementById("reviewStatus").innerText="❌ Max 2 reviews allowed";
     return;
   }
 
-  reviewForm.style.display="block";
+  document.getElementById("reviewForm").style.display="block";
 };
 
-submitReview.onclick = async ()=>{
-  const msg = reviewMsg.value.trim();
+document.getElementById("submitReview").onclick = async ()=>{
+  const msg = document.getElementById("reviewMsg").value.trim();
   if(!msg) return;
 
   await addDoc(collection(db,"reviews"),{
@@ -269,9 +349,9 @@ submitReview.onclick = async ()=>{
     createdAt:new Date()
   });
 
-  reviewForm.style.display="none";
-  reviewMsg.value="";
-  reviewStatus.innerText="✅ Review submitted";
+  document.getElementById("reviewForm").style.display="none";
+  document.getElementById("reviewMsg").value="";
+  document.getElementById("reviewStatus").innerText="✅ Review submitted";
   loadReviews();
 };
 </script>

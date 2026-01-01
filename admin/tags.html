@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Admin - Manage Product Tags</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #050505;
+      color: #fff;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+
+    .admin-container {
+      max-width: 1000px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin: 30px 0;
+      font-size: 32px;
+      background: linear-gradient(90deg, #00ffee, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #0f0f0f;
+      border: 1px solid #1f1f1f;
+      border-radius: 14px;
+      overflow: hidden;
+    }
+
+    th {
+      background: #1a1a1a;
+      padding: 16px;
+      text-align: left;
+      color: #00ffee;
+    }
+
+    td {
+      padding: 16px;
+      border-bottom: 1px solid #222;
+      vertical-align: middle;
+    }
+
+    tr:hover {
+      background: #151515;
+    }
+
+    .product-thumb {
+      width: 60px;
+      height: 60px;
+      object-fit: contain;
+      background: #000;
+      border-radius: 8px;
+    }
+
+    .tag-toggle {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 14px;
+    }
+
+    .toggle-switch {
+      position: relative;
+      display: inline-block;
+      width: 50px;
+      height: 26px;
+    }
+
+    .toggle-switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #333;
+      transition: .4s;
+      border-radius: 26px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 20px;
+      width: 20px;
+      left: 3px;
+      bottom: 3px;
+      background-color: white;
+      transition: .4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: #00ff88;
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(24px);
+    }
+
+    .tag-label {
+      font-weight: bold;
+    }
+
+    .tag-good { color: #00ff88; }
+    .tag-useful { color: #ffaa00; }
+    .tag-hot { color: #ff4444; }
+
+    .no-data {
+      text-align: center;
+      padding: 60px;
+      color: #777;
+      font-size: 18px;
+    }
+
+    .save-note {
+      text-align: center;
+      margin-top: 20px;
+      color: #00ff88;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="admin-container">
+  <h1>Manage Product Tags</h1>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Product</th>
+        <th>Title</th>
+        <th>Price</th>
+        <th style="text-align:center;">Good</th>
+        <th style="text-align:center;">Useful</th>
+        <th style="text-align:center;">Hot Selling</th>
+      </tr>
+    </thead>
+    <tbody id="productsBody">
+      <tr><td colspan="6" class="no-data">Loading products...</td></tr>
+    </tbody>
+  </table>
+
+  <p class="save-note">Changes are saved automatically!</p>
+</div>
+
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { collection, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+onAuthStateChanged(auth, user => {
+  if (!user) location.href = "login.html";
+});
+
+const productsBody = document.getElementById("productsBody");
+
+async function loadProducts() {
+  productsBody.innerHTML = `<tr><td colspan="6" class="no-data">Loading...</td></tr>`;
+
+  try {
+    const snapshot = await getDocs(collection(db, "products"));
+    if (snapshot.empty) {
+      productsBody.innerHTML = `<tr><td colspan="6" class="no-data">No products found</td></tr>`;
+      return;
+    }
+
+    productsBody.innerHTML = "";
+    snapshot.forEach(docSnap => {
+      const p = docSnap.data();
+      p.id = docSnap.id;
+
+      // Default false if field missing
+      const isGood = p.isGood || false;
+      const isUseful = p.isUseful || false;
+      const isHotSelling = p.isHotSelling || false;
+
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td><img src="${p.image}" class="product-thumb"></td>
+        <td>${p.title}</td>
+        <td>₹${p.price}</td>
+        <td class="tag-toggle">
+          <label class="tag-label tag-good">GOOD</label>
+          <label class="toggle-switch">
+            <input type="checkbox" ${isGood ? "checked" : ""} data-field="isGood" data-id="${p.id}">
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td class="tag-toggle">
+          <label class="tag-label tag-useful">USEFUL</label>
+          <label class="toggle-switch">
+            <input type="checkbox" ${isUseful ? "checked" : ""} data-field="isUseful" data-id="${p.id}">
+            <span class="slider"></span>
+          </label>
+        </td>
+        <td class="tag-toggle">
+          <label class="tag-label tag-hot">HOT SELLING</label>
+          <label class="toggle-switch">
+            <input type="checkbox" ${isHotSelling ? "checked" : ""} data-field="isHotSelling" data-id="${p.id}">
+            <span class="slider"></span>
+          </label>
+        </td>
+      `;
+      productsBody.appendChild(row);
+    });
+
+    // Toggle event
+    document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+      cb.addEventListener("change", async (e) => {
+        const id = e.target.dataset.id;
+        const field = e.target.dataset.field;
+        const value = e.target.checked;
+
+        try {
+          await updateDoc(doc(db, "products", id), {
+            [field]: value
+          });
+          console.log(`Updated ${field} for ${id} to ${value}`);
+        } catch (err) {
+          alert("Error saving tag");
+          console.error(err);
+          e.target.checked = !value; // revert
+        }
+      });
+    });
+
+  } catch (err) {
+    productsBody.innerHTML = `<tr><td colspan="6" class="no-data">Error loading products</td></tr>`;
+    console.error(err);
+  }
+}
+
+loadProducts();
+</script>
+
+</body>
+</html>

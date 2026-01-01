@@ -1,76 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1635984204035154');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
 <meta charset="UTF-8">
-<title>Login</title>
+<title>Login - DigitalCart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
-body{
-  margin:0;
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:#050505;
-  font-family:Arial, sans-serif;
-  color:white;
-}
-.box{
-  width:360px;
-  background:#0f0f0f;
-  padding:25px;
-  border-radius:12px;
-  box-shadow:0 0 25px #00ffee55;
-}
-h2{text-align:center;color:#00ffee;}
-input{
-  width:100%;
-  padding:12px;
-  margin-top:10px;
-  background:#111;
-  border:1px solid #333;
-  color:white;
-  border-radius:8px;
-}
-button{
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  border:none;
-  border-radius:8px;
-  font-weight:bold;
-  cursor:pointer;
-}
-.login{
-  background:#00ffee;
-  color:black;
-}
-.google{
-  background:white;
-  color:black;
-  box-shadow:0 0 15px #4285f4;
-}
-small{
-  display:block;
-  margin-top:10px;
-  text-align:center;
-}
-a{color:#00ffee;text-decoration:none;}
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: #050505;
+    font-family: 'Arial', sans-serif;
+    color: white;
+  }
+
+  .login-box {
+    width: 380px;
+    background: #0a0a0a;
+    padding: 40px 30px;
+    border-radius: 20px;
+    text-align: center;
+    position: relative;
+    box-shadow: 0 0 40px rgba(0, 255, 238, 0.3);
+    border: 1px solid #1f1f1f;
+  }
+
+  .glow-border {
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 3px;
+    background: linear-gradient(45deg, #00ffee, #00ff88, #00ffee);
+    mask: linear-gradient(#fff 0 0) padding-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+    animation: border-glow 4s linear infinite;
+  }
+
+  @keyframes border-glow {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 100% 50%; }
+  }
+
+  h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    background: linear-gradient(90deg, #00ffee, #00ff88);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    font-weight: bold;
+  }
+
+  .subtitle {
+    font-size: 16px;
+    color: #aaa;
+    margin-bottom: 30px;
+  }
+
+  .input-group {
+    margin: 15px 0;
+  }
+
+  input {
+    width: 100%;
+    padding: 16px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 12px;
+    color: white;
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s;
+    box-sizing: border-box;
+  }
+
+  input:focus {
+    border-color: #00ffee;
+    box-shadow: 0 0 20px rgba(0, 255, 238, 0.4);
+  }
+
+  input::placeholder {
+    color: #777;
+  }
+
+  button {
+    width: 100%;
+    padding: 16px;
+    margin-top: 15px;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .login {
+    background: linear-gradient(90deg, #00ffee, #00ff88);
+    color: black;
+  }
+
+  .login:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(0, 255, 238, 0.5);
+  }
+
+  .google {
+    background: white;
+    color: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .google img {
+    width: 20px;
+    height: 20px;
+  }
+
+  .google:hover {
+    box-shadow: 0 10px 30px rgba(66, 133, 244, 0.4);
+    transform: translateY(-3px);
+  }
+
+  small {
+    display: block;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #aaa;
+  }
+
+  small a {
+    color: #00ffee;
+    text-decoration: none;
+    font-weight: bold;
+  }
+
+  small a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .login-box {
+      width: 90%;
+      padding: 35px 25px;
+    }
+    h2 {
+      font-size: 26px;
+    }
+  }
 </style>
 </head>
 
 <body>
 
-<div class="box">
-  <h2>Login</h2>
+<div class="login-box">
+  <div class="glow-border"></div>
+  <h2>Login to Digital World</h2>
+  <p class="subtitle">Welcome Back Gamer!</p>
 
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Password">
+  <div class="input-group">
+    <input type="email" id="email" placeholder="Email">
+  </div>
+
+  <div class="input-group">
+    <!-- Password permanent visible (text type) -->
+    <input type="text" id="password" placeholder="Password">
+  </div>
 
   <button class="login" id="loginBtn">LOGIN</button>
-  <button class="google" id="googleLoginBtn">Login with Google</button>
+  <button class="google" id="googleLoginBtn">
+    <img src="https://upload.wikimedia.org/wikipedia/commons/5/53/Google_%22G%22_Logo.svg" alt="G">
+    Continue with Google
+  </button>
 
-  <small>New user? <a href="signup.html">Create account</a></small>
+  <small>New here? <a href="signup.html">Create account</a></small>
 </div>
 
 <script type="module">
@@ -78,22 +204,32 @@ import { auth } from "./firebase.js";
 import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup }
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
+// Email/Password Login
 document.getElementById("loginBtn").addEventListener("click", async () => {
-  try{
-    await signInWithEmailAndPassword(auth, email.value, password.value);
-    location.href="index.html";
-  }catch(err){
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!email || !password) {
+    alert("Please enter email and password");
+    return;
+  }
+
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+    location.href = "index.html";
+  } catch (err) {
     alert(err.message);
     console.error(err);
   }
 });
 
+// Google Login
 document.getElementById("googleLoginBtn").addEventListener("click", async () => {
-  try{
+  try {
     const provider = new GoogleAuthProvider();
     await signInWithPopup(auth, provider);
-    location.href="index.html";
-  }catch(err){
+    location.href = "index.html";
+  } catch (err) {
     alert(err.message);
     console.error(err);
   }
