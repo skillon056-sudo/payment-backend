@@ -251,7 +251,7 @@ async function buyNow(){
   buyBtn.disabled=true;
 
   const res = await fetch(
-    "https://payment-backend-kzcf.onrender.com/api/create-order",
+    "https://api.digitalcart.space/api/create-order",
     {
       method:"POST",
       headers:{ "Content-Type":"application/json" },
