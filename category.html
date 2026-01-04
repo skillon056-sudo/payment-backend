@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '1635984204035154');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+
+<meta charset="UTF-8">
+<title>Category - Digital Cart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- TOP BAR with back button -->
+<header class="top-bar">
+  <button class="back-btn" onclick="history.back()">←</button>
+
+  <div class="logo-box" style="position:absolute;left:50%;transform:translateX(-50%);">
+    <img src="logo.png" class="site-logo">
+    <span class="logo-text">DIGITAL CART</span>
+  </div>
+
+  <div class="menu">
+    <img src="logo.png" onclick="toggleMenu()">
+    <div class="dropdown" id="menuBox">
+      <a href="profile.html">👤 Profile</a>
+      <a href="your-products.html">📦 Your Products</a>
+      <a href="transaction-history.html">💳 Transactions</a>
+      <a href="#" id="logoutBtn">🚪 Logout</a>
+    </div>
+  </div>
+</header>
+
+<!-- Category Title -->
+<div style="text-align:center;padding:20px 15px;">
+  <h1 id="categoryTitle" style="font-size:24px;font-weight:bold;"></h1>
+</div>
+
+<!-- Products Grid -->
+<div class="page-center">
+  <div class="product-grid" id="categoryProducts"></div>
+</div>
+
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+onAuthStateChanged(auth, user => {
+  if (!user) location.href = "login.html";
+});
+
+const params = new URLSearchParams(window.location.search);
+const categoryId = params.get("id");
+
+const titleMap = {
+  sarkari: "Sarkari Kaam",
+  income: "Part Time Income",
+  instagram: "Instagram Reels",
+  youtube: "Youtube Growth",
+  english: "English Speaking",
+  free: "Free Videos"
+};
+
+document.getElementById("categoryTitle").textContent = titleMap[categoryId] || "Category Products";
+
+const container = document.getElementById("categoryProducts");
+
+// Load all products and filter
+async function loadCategoryProducts() {
+  const snap = await getDocs(collection(db, "products"));
+  const products = [];
+  snap.forEach(doc => {
+    const p = doc.data();
+    p.id = doc.id;
+    if (p.circularCategory === categoryId || p.normalSectionId === categoryId) {
+      products.push(p);
+    }
+  });
+
+  if (products.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:60px;color:#777;font-size:18px;">No products in this category yet</div>';
+    return;
+  }
+
+  // SORT: HOT SELLING first
+  products.sort((a, b) => {
+    if (a.isHotSelling && !b.isHotSelling) return -1;
+    if (!a.isHotSelling && b.isHotSelling) return 1;
+    return 0;
+  });
+
+  container.innerHTML = products.map(p => {
+    let tagsHTML = "";
+    if (p.isHotSelling) tagsHTML += `<span class="tag tag-hot">HOT SELLING</span>`;
+    if (p.isGood) tagsHTML += `<span class="tag tag-good">GOOD</span>`;
+    if (p.isUseful) tagsHTML += `<span class="tag tag-useful">USEFUL</span>`;
+
+    return `
+      <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
+        <img src="${p.image}" alt="${p.title}">
+        <div class="product-info">
+          <div class="product-title">${p.title}</div>
+          <div class="product-tags">${tagsHTML}</div>
+          <div class="product-price">₹${p.price}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+loadCategoryProducts();
+</script>
+
+<script>
+function toggleMenu(){
+  document.getElementById("menuBox").classList.toggle("show");
+}
+</script>
+
+<a href="https://wa.me/919999999999?text=Hello%20Support" target="_blank" class="whatsapp-float">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" />
+</a>
+
+<style>
+  /* Back button */
+  .back-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+    padding: 0 10px;
+  }
+
+  /* Product grid for category page */
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+    padding: 10px 15px;
+  }
+
+  .product-card {
+    background: #0f0f0f;
+    border: 1px solid #1f1f1f;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 0 30px rgba(0, 255, 238, 0.3);
+  }
+
+  .product-card img {
+  width: 100%;
+  aspect-ratio: 9 / 16;
+  object-fit: contain;  /* crop नहीं होगा, full image दिखेगा */
+  background: #000;
+  border-radius: 14px;
+}
+  .product-info {
+    padding: 12px;
+  }
+
+  .product-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+    line-height: 1.3;
+    height: 40px;
+    overflow: hidden;
+  }
+
+  .product-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .tag {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .tag-hot {
+    background: #ff4444;
+    color: white;
+  }
+
+  .tag-good {
+    background: #00ff88;
+    color: black;
+  }
+
+  .tag-useful {
+    background: #ffaa00;
+    color: black;
+  }
+
+  .product-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00ff88;
+  }
+  .tag-hot {
+  background: #ff4444;
+  color: white;
+  animation: glow-pulse 2s infinite;
+}
+
+@keyframes glow-pulse {
+  0% { box-shadow: 0 0 5px #ff4444; }
+  50% { box-shadow: 0 0 20px #ff4444, 0 0 30px #ff0000; }
+  100% { box-shadow: 0 0 5px #ff4444; }
+}
+
+  @media (max-width: 600px) {
+    .product-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .product-card img {
+      height: 200px;
+    }
+  }
+</style>
+
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Search Products - Digital Cart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- TOP BAR with back button -->
+<header class="top-bar">
+  <button class="back-btn" onclick="history.back()">←</button>
+
+  <div class="logo-box" style="position:absolute;left:50%;transform:translateX(-50%);">
+    <img src="logo.png" class="site-logo">
+    <span class="logo-text">DIGITAL CART</span>
+  </div>
+
+  <div class="menu">
+    <img src="logo.png" onclick="toggleMenu()">
+    <div class="dropdown" id="menuBox">
+      <a href="profile.html">👤 Profile</a>
+      <a href="your-products.html">📦 Your Products</a>
+      <a href="transaction-history.html">💳 Transactions</a>
+      <a href="#" id="logoutBtn">🚪 Logout</a>
+    </div>
+  </div>
+</header>
+
+<!-- Search bar full width -->
+<div style="padding:20px 15px;">
+  <input type="text" id="searchInput" placeholder="Search products..." class="search-input" autofocus>
+</div>
+
+<!-- Search results grid -->
+<div class="page-center">
+  <div class="product-grid" id="searchResults"></div>
+</div>
+
+<script type="module">
+import { db, auth } from "./firebase.js";
+import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+onAuthStateChanged(auth, user => {
+  if (!user) location.href = "login.html";
+});
+
+let allProducts = [];
+
+async function loadAllProducts() {
+  const snap = await getDocs(collection(db, "products"));
+  allProducts = [];
+  snap.forEach(doc => {
+    const p = doc.data();
+    p.id = doc.id;
+    allProducts.push(p);
+  });
+
+  // URL से query ले (जैसे ?q=bulk)
+  const params = new URLSearchParams(window.location.search);
+  const query = params.get("q") || "";
+  document.getElementById("searchInput").value = query;
+  performSearch(query);
+}
+
+function performSearch(query) {
+  query = query.toLowerCase().trim();
+  const filtered = query === "" 
+    ? allProducts 
+    : allProducts.filter(p => p.title.toLowerCase().includes(query));
+
+  const container = document.getElementById("searchResults");
+  if (filtered.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:60px;color:#777;font-size:18px;">No products found</div>';
+    return;
+  }
+
+  container.innerHTML = filtered.map(p => {
+    let tagsHTML = "";
+    if (p.isHotSelling) tagsHTML += `<span class="tag tag-hot">HOT SELLING</span>`;
+    if (p.isGood) tagsHTML += `<span class="tag tag-good">GOOD</span>`;
+    if (p.isUseful) tagsHTML += `<span class="tag tag-useful">USEFUL</span>`;
+
+    return `
+      <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
+        <img src="${p.image}" alt="${p.title}">
+        <div class="product-info">
+          <div class="product-title">${p.title}</div>
+          <div class="product-tags">${tagsHTML}</div>
+          <div class="product-price">₹${p.price}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+// Live search
+document.getElementById("searchInput").addEventListener("input", e => {
+  performSearch(e.target.value);
+});
+
+loadAllProducts();
+</script>
+
+<script>
+function toggleMenu(){
+  document.getElementById("menuBox").classList.toggle("show");
+}
+</script>
+
+<a href="https://wa.me/919999999999?text=Hello%20Support" target="_blank" class="whatsapp-float">
+  <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" />
+</a>
+
+<style>
+  .back-btn {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 26px;
+    cursor: pointer;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 14px 16px;
+    background: #0f0f0f;
+    border: 1px solid #1f1f1f;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 16px;
+  }
+
+  .product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 20px;
+  }
+
+  .product-card {
+    background: #0f0f0f;
+    border: 1px solid #1f1f1f;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+  }
+
+  .product-card img {
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .product-info {
+    padding: 12px;
+  }
+
+  .product-title {
+    font-size: 15px;
+    margin-bottom: 8px;
+  }
+
+  .product-tags {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+
+  .tag {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .tag-hot { background: #ff4444; color: white; animation: hot-glow 2s infinite; }
+  .tag-good { background: #00ff88; color: black; }
+  .tag-useful { background: #ffaa00; color: black; }
+
+  @keyframes hot-glow {
+    0% { box-shadow: 0 0 10px #ff4444; }
+    50% { box-shadow: 0 0 25px #ff4444; }
+    100% { box-shadow: 0 0 10px #ff4444; }
+  }
+
+  .product-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00ff88;
+  }
+</style>
+
+</body>
+</html>

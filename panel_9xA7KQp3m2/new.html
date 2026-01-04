@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Admin Panel - Digital Cart</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  body { background: #050505; color: #fff; font-family: Arial; padding: 20px; }
+  h1 { text-align: center; margin-bottom: 30px; }
+  .panel { background: #0f0f0f; border: 1px solid #1f1f1f; border-radius: 14px; padding: 20px; margin-bottom: 30px; }
+  input, select, button { width: 100%; padding: 12px; margin: 10px 0; border-radius: 10px; background: #111; border: 1px solid #333; color: #fff; font-size: 15px; }
+  input:focus, select:focus { border-color: #00ffee; box-shadow: 0 0 15px rgba(0, 255, 238, 0.3); }
+  button { background: linear-gradient(90deg, #00ffee, #00ff88); color: black; font-weight: bold; cursor: pointer; border: none; }
+  button:hover { transform: translateY(-3px); box-shadow: 0 10px 30px rgba(0, 255, 238, 0.5); }
+  .status { text-align: center; margin-top: 10px; font-size: 14px; }
+  .success { color: #00ff88; }
+  .error { color: #ff4444; }
+</style>
+</head>
+<body>
+
+<h1>Admin Panel - Digital Cart</h1>
+
+<!-- Add Product to Circular Category -->
+<div class="panel">
+  <h2>Add Product to Circular Category</h2>
+  <select id="circularCategory">
+    <option value="">Select Circular Category</option>
+    <option value="sarkari">Sarkari Kaam</option>
+    <option value="income">Part Time Income</option>
+    <option value="instagram">Instagram Reels</option>
+    <option value="youtube">Youtube Growth</option>
+    <option value="english">English Speaking</option>
+    <option value="free">Free Videos</option>
+  </select>
+  <select id="circularProduct"></select>
+  <button onclick="addToCircular()">Add to Circular Category</button>
+  <div class="status" id="circularStatus"></div>
+</div>
+
+<!-- Create Normal Section -->
+<div class="panel">
+  <h2>Create Normal Section</h2>
+  <input id="normalTitle" placeholder="Section Title">
+  <input id="normalOrder" type="number" placeholder="Order" value="999">
+  <button onclick="createNormalSection()">Create Section</button>
+  <div class="status" id="normalCreateStatus"></div>
+</div>
+
+<!-- Add Product to Normal Section -->
+<div class="panel">
+  <h2>Add Product to Normal Section</h2>
+  <select id="normalSection"></select>
+  <select id="normalProduct"></select>
+  <button onclick="addToNormal()">Add to Normal Section</button>
+  <div class="status" id="normalStatus"></div>
+</div>
+
+<!-- Add New Product -->
+<div class="panel">
+  <h2>Add New Product</h2>
+  <input id="newTitle" placeholder="Product Title">
+  <input id="newPrice" type="number" placeholder="Price">
+  <input id="newImage" placeholder="Image URL">
+  <div style="display:flex;gap:10px;margin:10px 0;">
+    <label><input type="checkbox" id="hot"> HOT SELLING</label>
+    <label><input type="checkbox" id="good"> GOOD</label>
+    <label><input type="checkbox" id="useful"> USEFUL</label>
+  </div>
+  <button onclick="addNewProduct()">Add Product</button>
+  <div class="status" id="newProductStatus"></div>
+</div>
+<!-- Add Banner -->
+<div class="panel">
+  <h2>Add New Banner</h2>
+  <input id="bannerImage" placeholder="Banner Image URL">
+  <input id="bannerOrder" type="number" placeholder="Order (smaller = first)" value="999">
+  <button onclick="addBanner()">Add Banner</button>
+  <div class="status" id="bannerStatus"></div>
+</div>
+
+<script type="module">
+import { db } from "./firebase.js";
+import { collection, addDoc, getDocs, query, orderBy, updateDoc, doc, arrayUnion } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+let allProducts = [];
+
+// Load products
+async function loadProducts() {
+  const snap = await getDocs(collection(db, "products"));
+  allProducts = [];
+  const circularSelect = document.getElementById("circularProduct");
+  const normalSelect = document.getElementById("normalProduct");
+  circularSelect.innerHTML = '<option value="">Select Product</option>';
+  normalSelect.innerHTML = '<option value="">Select Product</option>';
+
+  snap.forEach(doc => {
+    const p = doc.data();
+    p.id = doc.id;
+    allProducts.push(p);
+
+    const opt1 = document.createElement("option");
+    opt1.value = doc.id;
+    opt1.textContent = p.title + " (₹" + p.price + ")";
+    circularSelect.appendChild(opt1);
+
+    const opt2 = opt1.cloneNode(true);
+    normalSelect.appendChild(opt2);
+  });
+}
+
+// Load normal sections
+async function loadNormalSections() {
+  const snap = await getDocs(query(collection(db, "normalSections"), orderBy("order")));
+  const select = document.getElementById("normalSection");
+  select.innerHTML = '<option value="">Select Normal Section</option>';
+
+  snap.forEach(doc => {
+    const opt = document.createElement("option");
+    opt.value = doc.id;
+    opt.textContent = doc.data().title;
+    select.appendChild(opt);
+  });
+}
+
+// Add to Circular
+window.addToCircular = async () => {
+  const category = document.getElementById("circularCategory").value;
+  const productId = document.getElementById("circularProduct").value;
+
+  if (!category || !productId) {
+    document.getElementById("circularStatus").textContent = "Select category and product!";
+    document.getElementById("circularStatus").className = "status error";
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, "products", productId), { circularCategory: category });
+    document.getElementById("circularStatus").textContent = "Product added to circular category!";
+    document.getElementById("circularStatus").className = "status success";
+  } catch (e) {
+    document.getElementById("circularStatus").textContent = "Error: " + e.message;
+    document.getElementById("circularStatus").className = "status error";
+  }
+};
+
+// Create Normal Section
+window.createNormalSection = async () => {
+  const title = document.getElementById("normalTitle").value.trim();
+  const order = parseInt(document.getElementById("normalOrder").value) || 999;
+
+  if (!title) {
+    document.getElementById("normalCreateStatus").textContent = "Title required!";
+    document.getElementById("normalCreateStatus").className = "status error";
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "normalSections"), { title, order, products: [] });
+    document.getElementById("normalCreateStatus").textContent = "Normal section created!";
+    document.getElementById("normalCreateStatus").className = "status success";
+    loadNormalSections();
+  } catch (e) {
+    document.getElementById("normalCreateStatus").textContent = "Error: " + e.message;
+    document.getElementById("normalCreateStatus").className = "status error";
+  }
+};
+
+// Add to Normal
+// Add to Normal
+window.addToNormal = async () => {
+  const sectionId = document.getElementById("normalSection").value;
+  const productId = document.getElementById("normalProduct").value;
+
+  if (!sectionId || !productId) {
+    document.getElementById("normalStatus").textContent = "Select section and product!";
+    document.getElementById("normalStatus").className = "status error";
+    return;
+  }
+
+  try {
+    // Product में normalSectionId save करो
+    await updateDoc(doc(db, "products", productId), { normalSectionId: sectionId });
+    document.getElementById("normalStatus").textContent = "Product added to normal section!";
+    document.getElementById("normalStatus").className = "status success";
+  } catch (e) {
+    document.getElementById("normalStatus").textContent = "Error: " + e.message;
+    document.getElementById("normalStatus").className = "status error";
+  }
+};
+
+// Add New Product
+window.addNewProduct = async () => {
+  const title = document.getElementById("newTitle").value.trim();
+  const price = parseInt(document.getElementById("newPrice").value);
+  const image = document.getElementById("newImage").value.trim();
+  const hot = document.getElementById("hot").checked;
+  const good = document.getElementById("good").checked;
+  const useful = document.getElementById("useful").checked;
+
+  if (!title || !price || !image) {
+    document.getElementById("newProductStatus").textContent = "All fields required!";
+    document.getElementById("newProductStatus").className = "status error";
+    return;
+  }
+
+  try {
+    await addDoc(collection(db, "products"), {
+      title,
+      price,
+      image,
+      isHotSelling: hot,
+      isGood: good,
+      isUseful: useful,
+      circularCategory: "",
+      normalSectionId: ""
+    });
+    document.getElementById("newProductStatus").textContent = "New product added!";
+    document.getElementById("newProductStatus").className = "status success";
+    loadProducts();
+  } catch (e) {
+    document.getElementById("newProductStatus").textContent = "Error: " + e.message;
+    document.getElementById("newProductStatus").className = "status error";
+  }
+};
+
+// Initial load
+loadProducts();
+loadNormalSections();
+window.addBanner = async () => {
+  const image = document.getElementById("bannerImage").value.trim();
+  const order = parseInt(document.getElementById("bannerOrder").value) || 999;
+
+  if (!image) return alert("Image URL required");
+
+  await addDoc(collection(db, "banners"), { image, order });
+  alert("Banner added!");
+  document.getElementById("bannerImage").value = "";
+};
+</script>
+
+</body>
+</html>

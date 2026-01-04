@@ -23,21 +23,16 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
 <header class="top-bar">
   <div class="logo-box">
     <img src="logo.png" class="site-logo">
     <span class="logo-text">DIGITAL CART</span>
   </div>
-
-  <div class="search-container desktop-only">
-    <input type="text" id="searchInput" placeholder="Search products..." class="search-input">
+  <div class="search-container desktop-only" onclick="location.href='search.html'">
+    <input type="text" placeholder="Search products..." class="search-input" readonly>
   </div>
-
-  <button class="mobile-search-icon" id="mobileSearchBtn">🔍</button>
-
+  <button class="mobile-search-icon" onclick="location.href='search.html'">🔍</button>
   <div class="menu">
     <img src="logo.png" onclick="toggleMenu()">
     <div class="dropdown" id="menuBox">
@@ -48,85 +43,175 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
     </div>
   </div>
 </header>
-
-<div class="mobile-search-fixed" id="mobileSearchFixed">
-  <input type="text" id="mobileSearchInput" placeholder="Search products..." class="search-input">
-  <button id="closeSearchBtn">✕</button>
+<div class="mobile-search-overlay" id="mobileSearchOverlay">
+  <div class="mobile-search-bar">
+    <span>🔍</span>
+    <input type="text" id="mobileSearchInput" placeholder="Search products...">
+    <button id="closeSearchBtn">✕</button>
+  </div>
+</div>
+<!-- CIRCULAR CATEGORIES -->
+<div class="categories">
+  <div class="category" onclick="location.href='category.html?id=sarkari'">
+    <div class="category-icon">🏛️</div>
+    <div class="category-title">Sarkari<br>Kaam</div>
+  </div>
+  <div class="category" onclick="location.href='category.html?id=income'">
+    <div class="category-icon">💰</div>
+    <div class="category-title">Part Time<br>Income</div>
+  </div>
+  <div class="category" onclick="location.href='category.html?id=instagram'">
+    <div class="category-icon">📸</div>
+    <div class="category-title">Instagram<br>Reels</div>
+  </div>
+  <div class="category" onclick="location.href='category.html?id=youtube'">
+    <div class="category-icon">▶️</div>
+    <div class="category-title">Youtube<br>Growth</div>
+  </div>
+  <div class="category" onclick="location.href='category.html?id=english'">
+    <div class="category-icon">🗣️</div>
+    <div class="category-title">English<br>Speaking</div>
+  </div>
+  <div class="category" onclick="location.href='category.html?id=free'">
+    <div class="category-icon">🎬</div>
+    <div class="category-title">Free<br>Videos</div>
+  </div>
+</div>
+<!-- NORMAL SECTIONS -->
+<div class="page-center">
+  <div id="normalSectionsContainer"></div>
 </div>
 
-<div class="page-center">
-  <section class="product-grid" id="products"></section>
+<!-- BANNER SLIDER (after first normal section) -->
+<div class="banner-slider" id="bannerSlider" style="display:none;">
+  <div class="banner-slides" id="bannerSlides"></div>
+  <button class="banner-prev">‹</button>
+  <button class="banner-next">›</button>
+  <div class="banner-dots" id="bannerDots"></div>
 </div>
 
 <script type="module">
 import { db, auth } from "./firebase.js";
-import { collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { collection, getDocs, query, orderBy } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 onAuthStateChanged(auth, user => {
   if (!user) location.href = "login.html";
 });
 
-document.getElementById("logoutBtn").onclick = async () => {
-  await signOut(auth);
-  location.href = "login.html";
-};
-
-const container = document.getElementById("products");
-const searchInput = document.getElementById("searchInput");
-const mobileSearchInput = document.getElementById("mobileSearchInput");
-const mobileSearchBtn = document.getElementById("mobileSearchBtn");
-const mobileSearchFixed = document.getElementById("mobileSearchFixed");
-const closeSearchBtn = document.getElementById("closeSearchBtn");
-
 let allProducts = [];
+let banners = [];
+let firstSectionRendered = false;
 
-// Load products
-const snap = await getDocs(collection(db, "products"));
-snap.forEach(doc => {
-  const p = doc.data();
-  p.id = doc.id;
-  p.isGood = p.isGood || false;
-  p.isUseful = p.isUseful || false;
-  p.isHotSelling = p.isHotSelling || false;
-  allProducts.push(p);
-});
+async function loadData() {
+  const productsSnap = await getDocs(collection(db, "products"));
+  allProducts = [];
+  productsSnap.forEach(doc => {
+    const p = doc.data();
+    p.id = doc.id;
+    allProducts.push(p);
+  });
 
-// Hot Selling top पर
-allProducts.sort((a, b) => (b.isHotSelling - a.isHotSelling));
+  const normalSnap = await getDocs(query(collection(db, "normalSections"), orderBy("order")));
+  const container = document.getElementById("normalSectionsContainer");
 
-renderProducts(allProducts);
+  normalSnap.forEach(doc => {
+    const data = doc.data();
+    const sectionProducts = allProducts.filter(p => p.normalSectionId === doc.id);
 
-// Search
-function performSearch(value) {
-  const query = value.toLowerCase().trim();
-  const filtered = query === "" 
-    ? allProducts 
-    : allProducts.filter(p => p.title.toLowerCase().includes(query));
-  renderProducts(filtered);
+    const sectionDiv = document.createElement("div");
+    sectionDiv.className = "section";
+    sectionDiv.innerHTML = `
+      <div class="section-header">
+        <div class="section-title">${data.title}</div>
+        <div class="view-all" onclick="location.href='category.html?id=${doc.id}'">View all ></div>
+      </div>
+      <div class="videos" id="normal-${doc.id}"></div>
+    `;
+    container.appendChild(sectionDiv);
+
+    renderProducts(`normal-${doc.id}`, sectionProducts);
+
+    // Banner slider को पहली section के नीचे insert करो
+    if (!firstSectionRendered) {
+      const bannerSlider = document.getElementById("bannerSlider");
+      container.appendChild(bannerSlider);
+      bannerSlider.style.display = "block";
+      firstSectionRendered = true;
+    }
+  });
+
+  const bannersSnap = await getDocs(query(collection(db, "banners"), orderBy("order")));
+  banners = [];
+  bannersSnap.forEach(doc => {
+    const b = doc.data();
+    b.id = doc.id;
+    banners.push(b);
+  });
+
+  renderBanners();
 }
 
-searchInput.addEventListener("input", e => performSearch(e.target.value));
-mobileSearchInput.addEventListener("input", e => performSearch(e.target.value));
+function renderBanners() {
+  const slidesContainer = document.getElementById("bannerSlides");
+  const dotsContainer = document.getElementById("bannerDots");
 
-// Mobile search
-mobileSearchBtn.onclick = () => {
-  mobileSearchFixed.style.display = "flex";
-  mobileSearchInput.focus();
-};
-
-closeSearchBtn.onclick = () => {
-  mobileSearchFixed.style.display = "none";
-  mobileSearchInput.value = "";
-  searchInput.value = "";
-  renderProducts(allProducts);
-};
-
-function renderProducts(products) {
-  if (products.length === 0) {
-    container.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:60px;color:#777;font-size:18px;">No products found</div>`;
+  if (banners.length === 0) {
     return;
   }
+
+  slidesContainer.innerHTML = banners.map((b, i) => `
+    <div class="banner-slide">
+      <img src="${b.image}" alt="Banner">
+    </div>
+  `).join("");
+
+  dotsContainer.innerHTML = banners.map((_, i) => `
+    <span class="banner-dot ${i === 0 ? 'active' : ''}" onclick="currentSlide(${i})"></span>
+  `).join("");
+
+  let currentIndex = 0;
+  const slides = document.querySelectorAll(".banner-slide");
+  const dots = document.querySelectorAll(".banner-dot");
+
+  window.currentSlide = (n) => {
+    slides.forEach(s => s.style.display = "none");
+    dots.forEach(d => d.classList.remove("active"));
+    slides[n].style.display = "block";
+    dots[n].classList.add("active");
+  };
+
+  document.querySelector(".banner-next").onclick = () => {
+    currentIndex = (currentIndex + 1) % slides.length;
+    window.currentSlide(currentIndex);
+  };
+
+  document.querySelector(".banner-prev").onclick = () => {
+    currentIndex = (currentIndex - 1 + slides.length) % slides.length;
+    window.currentSlide(currentIndex);
+  };
+
+  setInterval(() => {
+    document.querySelector(".banner-next").click();
+  }, 5000);
+
+  window.currentSlide(0);
+}
+
+function renderProducts(containerId, products) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+
+  if (products.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:#777;font-size:16px;">No products in this section yet</div>';
+    return;
+  }
+
+  products.sort((a, b) => {
+    if (a.isHotSelling && !b.isHotSelling) return -1;
+    if (!a.isHotSelling && b.isHotSelling) return 1;
+    return 0;
+  });
 
   container.innerHTML = products.map(p => {
     let tagsHTML = "";
@@ -135,11 +220,11 @@ function renderProducts(products) {
     if (p.isUseful) tagsHTML += `<span class="tag tag-useful">USEFUL</span>`;
 
     return `
-      <div class="product-card" onclick="openProduct('${p.id}')">
-        <img src="${p.image}">
+      <div class="product-card" onclick="location.href='product.html?id=${p.id}'">
+        <img src="${p.image}" alt="${p.title}">
         <div class="product-info">
           <div class="product-title">${p.title}</div>
-          ${tagsHTML ? `<div class="product-tags">${tagsHTML}</div>` : ""}
+          <div class="product-tags">${tagsHTML}</div>
           <div class="product-price">₹${p.price}</div>
         </div>
       </div>
@@ -147,7 +232,7 @@ function renderProducts(products) {
   }).join("");
 }
 
-window.openProduct = id => location.href = "product.html?id=" + id;
+loadData();
 </script>
 
 <script>
@@ -161,103 +246,42 @@ function toggleMenu(){
 </a>
 
 <style>
-  /* Product Info & Tags */
-  .product-info {
-    padding: 10px;
-    text-align: left;
-  }
-
-  .product-tags {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    margin: 8px 0;
-  }
-
-  .tag {
-    padding: 6px 14px;
-    border-radius: 20px;
-    font-size: 12px;
-    font-weight: bold;
-    letter-spacing: 0.5px;
-  }
-
-  /* GOOD - Green */
-  .tag-good {
-    background: #00ff88;
-    color: black;
-    box-shadow: 0 0 15px #00ff88;
-    animation: pulse-glow 2s infinite;
-  }
-
-  /* USEFUL - Orange */
-  .tag-useful {
-    background: #ffaa00;
-    color: black;
-    box-shadow: 0 0 15px #ffaa00;
-    animation: pulse-glow 2s infinite;
-  }
-
-  /* HOT SELLING - Red with white text + red glow */
-  .tag-hot {
-    background: #ff4444;
-    color: white; /* text white रहेगा */
-    box-shadow: 0 0 15px #ff4444;
-    animation: pulse-glow-red 2s infinite;
-  }
-
-  @keyframes pulse-glow {
-    0% { box-shadow: 0 0 15px currentColor; }
-    50% { box-shadow: 0 0 25px currentColor, 0 0 35px currentColor; }
-    100% { box-shadow: 0 0 15px currentColor; }
-  }
-
-  @keyframes pulse-glow-red {
-    0% { box-shadow: 0 0 15px #ff4444; }
-    50% { box-shadow: 0 0 30px #ff4444, 0 0 40px #ff0000; }
-    100% { box-shadow: 0 0 15px #ff4444; }
-  }
-
-  /* Search fixes (no change) */
-  .desktop-only {
-    display: flex;
-  }
-
-  .mobile-search-icon {
-    display: none;
-    background: none;
-    border: none;
+  body {
+    background: #050505;
     color: #fff;
-    font-size: 22px;
-    cursor: pointer;
-    padding: 8px;
+    font-family: Arial, sans-serif;
   }
 
-  .mobile-search-fixed {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    background: #0a0a0a;
-    padding: 12px 16px;
-    display: none;
+  /* Top bar dark */
+  .top-bar {
+    display: flex;
     align-items: center;
-    z-index: 999;
+    justify-content: space-between;
+    padding: 14px 22px;
+    background: #0a0a0a;
     border-bottom: 1px solid #1f1f1f;
   }
 
-  .mobile-search-fixed input {
-    flex: 1;
-    max-width: 600px;
-    margin-right: 10px;
+  .logo-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
   }
 
-  #closeSearchBtn {
-    background: none;
-    border: none;
-    color: #fff;
-    font-size: 26px;
-    cursor: pointer;
+  .site-logo {
+    width: 36px;
+    height: 36px;
+  }
+
+  .logo-text {
+    font-size: 18px;
+    font-weight: bold;
+  }
+
+  .search-container {
+    flex: 1;
+    max-width: 400px;
+    margin: 0 20px;
   }
 
   .search-input {
@@ -265,27 +289,258 @@ function toggleMenu(){
     padding: 12px 16px;
     background: #0f0f0f;
     border: 1px solid #1f1f1f;
-    border-radius: 12px;
+    border-radius: 30px;
     color: #fff;
     font-size: 15px;
-    outline: none;
-    transition: 0.3s;
   }
 
-  .search-input:focus {
-    border-color: #00ffee;
-    box-shadow: 0 0 20px rgba(0, 255, 238, 0.3);
+  .mobile-search-icon {
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 22px;
+    cursor: pointer;
   }
 
-  @media (max-width: 900px) {
+  .desktop-only {
+    display: flex;
+  }
+
+  @media (max-width: 768px) {
     .desktop-only {
       display: none;
     }
-    .mobile-search-icon {
-      display: block;
+  }
+
+  /* Circular categories */
+  .categories {
+    display: flex;
+    justify-content: center;
+    overflow-x: auto;
+    padding: 20px 15px 10px;
+    gap: 28px;
+    scrollbar-width: none;
+  }
+
+  .categories::-webkit-scrollbar { display: none; }
+
+  .category {
+    text-align: center;
+    min-width: 80px;
+    cursor: pointer;
+  }
+
+  .category-icon {
+    width: 68px;
+    height: 68px;
+    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 10px;
+    box-shadow: 0 0 25px rgba(124, 58, 237, 0.5);
+  }
+
+  .category-title {
+    font-size: 13px;
+    color: #ddd;
+    line-height: 1.3;
+  }
+
+  .page-center {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 15px;
+  }
+
+  .section {
+    padding: 10px 0 30px;
+  }
+
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+  }
+
+  .section-title {
+    font-size: 19px;
+    font-weight: bold;
+  }
+
+  .view-all {
+    font-size: 14px;
+    color: #a78bfa;
+    cursor: pointer;
+  }
+
+  .videos {
+    display: flex;
+    overflow-x: auto;
+    gap: 16px;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+  }
+
+  .videos::-webkit-scrollbar { display: none; }
+
+  /* Uniform product card */
+  .product-card {
+    width: 180px;
+    height: 440px;
+    display: flex;
+    flex-direction: column;
+    background: #0f0f0f;
+    border: 1px solid #1f1f1f;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: 0.3s;
+    flex-shrink: 0;
+  }
+
+  .product-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 0 30px rgba(0, 255, 238, 0.3);
+  }
+
+  .product-card img {
+    width: 100%;
+    height: 240px;
+    aspect-ratio: 9 / 16;
+    object-fit: contain;
+    background: #000;
+  }
+
+  .product-info {
+    flex: 1;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .product-title {
+    font-size: 14px;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+  }
+
+  .product-tags {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 10px;
+  }
+
+  .product-price {
+    font-size: 18px;
+    font-weight: bold;
+    color: #00ff88;
+    margin-top: auto;
+  }
+
+  .tag {
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+  }
+
+  .tag-hot {
+    background: #ff4444;
+    color: white;
+    animation: hot-glow 2s infinite;
+  }
+
+  .tag-good {
+    background: #00ff88;
+    color: black;
+  }
+
+  .tag-useful {
+    background: #ffaa00;
+    color: black;
+  }
+
+  @keyframes hot-glow {
+    0% { box-shadow: 0 0 8px #ff4444; }
+    50% { box-shadow: 0 0 20px #ff4444, 0 0 30px #ff0000; }
+    100% { box-shadow: 0 0 8px #ff4444; }
+  }
+
+  /* Banner slider */
+  .banner-slider {
+    position: relative;
+    width: 100%;
+    max-width: 1200px;
+    margin: 30px auto;
+    overflow: hidden;
+    border-radius: 16px;
+    box-shadow: 0 0 30px rgba(0, 255, 238, 0.2);
+  }
+
+  .banner-slide img {
+    width: 100%;
+    height: auto;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    display: block;
+  }
+
+  .banner-prev, .banner-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0,0,0,0.6);
+    color: white;
+    border: none;
+    font-size: 28px;
+    padding: 12px 18px;
+    cursor: pointer;
+    border-radius: 50%;
+    z-index: 10;
+  }
+
+  .banner-prev { left: 15px; }
+  .banner-next { right: 15px; }
+
+  .banner-dots {
+    text-align: center;
+    padding: 15px 0;
+  }
+
+  .banner-dot {
+    display: inline-block;
+    width: 12px;
+    height: 12px;
+    background: #555555;
+    border-radius: 50%;
+    margin: 0 6px;
+    cursor: pointer;
+  }
+
+  .banner-dot.active {
+    background: #00ffee;
+    box-shadow: 0 0 15px #00ffee;
+  }
+
+  /* Mobile */
+  @media (max-width: 768px) {
+    .product-card {
+      width: 160px;
+      height: 420px;
+    }
+    .product-card img {
+      height: 220px;
     }
   }
 </style>
-
 </body>
 </html>
