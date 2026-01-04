@@ -43,47 +43,42 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
     </div>
   </div>
 </header>
-<div class="mobile-search-overlay" id="mobileSearchOverlay">
-  <div class="mobile-search-bar">
-    <span>🔍</span>
-    <input type="text" id="mobileSearchInput" placeholder="Search products...">
-    <button id="closeSearchBtn">✕</button>
-  </div>
-</div>
+
 <!-- CIRCULAR CATEGORIES -->
 <div class="categories">
   <div class="category" onclick="location.href='category.html?id=sarkari'">
-    <div class="category-icon">🏛️</div>
-    <div class="category-title">Sarkari<br>Kaam</div>
+    <div class="category-icon">📊</div>
+    <div class="category-title">Business &<br>Income Guides</div>
   </div>
   <div class="category" onclick="location.href='category.html?id=income'">
-    <div class="category-icon">💰</div>
-    <div class="category-title">Part Time<br>Income</div>
+    <div class="category-icon">⚙️</div>
+    <div class="category-title">Tools &<br>Automation</div>
   </div>
   <div class="category" onclick="location.href='category.html?id=instagram'">
-    <div class="category-icon">📸</div>
-    <div class="category-title">Instagram<br>Reels</div>
+    <div class="category-icon">📁</div>
+    <div class="category-title">Templates &<br>Systems</div>
   </div>
   <div class="category" onclick="location.href='category.html?id=youtube'">
-    <div class="category-icon">▶️</div>
-    <div class="category-title">Youtube<br>Growth</div>
+    <div class="category-icon">📘</div>
+    <div class="category-title">Learning<br>Resources</div>
   </div>
   <div class="category" onclick="location.href='category.html?id=english'">
-    <div class="category-icon">🗣️</div>
-    <div class="category-title">English<br>Speaking</div>
+    <div class="category-icon">🎥</div>
+    <div class="category-title">Creator<br>Assets</div>
   </div>
   <div class="category" onclick="location.href='category.html?id=free'">
-    <div class="category-icon">🎬</div>
-    <div class="category-title">Free<br>Videos</div>
+    <div class="category-icon">🧰</div>
+    <div class="category-title">Utilities &<br>Digital Kits</div>
   </div>
 </div>
-<!-- NORMAL SECTIONS -->
+
+<!-- PAGE CENTER -->
 <div class="page-center">
   <div id="normalSectionsContainer"></div>
 </div>
 
-<!-- BANNER SLIDER (after first normal section) -->
-<div class="banner-slider" id="bannerSlider" style="display:none;">
+<!-- BANNER SLIDER -->
+<div class="banner-slider" id="bannerSlider">
   <div class="banner-slides" id="bannerSlides"></div>
   <button class="banner-prev">‹</button>
   <button class="banner-next">›</button>
@@ -132,11 +127,9 @@ async function loadData() {
 
     renderProducts(`normal-${doc.id}`, sectionProducts);
 
-    // Banner slider को पहली section के नीचे insert करो
     if (!firstSectionRendered) {
       const bannerSlider = document.getElementById("bannerSlider");
       container.appendChild(bannerSlider);
-      bannerSlider.style.display = "block";
       firstSectionRendered = true;
     }
   });
@@ -157,10 +150,11 @@ function renderBanners() {
   const dotsContainer = document.getElementById("bannerDots");
 
   if (banners.length === 0) {
+    document.getElementById("bannerSlider").style.display = "none";
     return;
   }
 
-  slidesContainer.innerHTML = banners.map((b, i) => `
+  slidesContainer.innerHTML = banners.map(b => `
     <div class="banner-slide">
       <img src="${b.image}" alt="Banner">
     </div>
@@ -174,28 +168,45 @@ function renderBanners() {
   const slides = document.querySelectorAll(".banner-slide");
   const dots = document.querySelectorAll(".banner-dot");
 
-  window.currentSlide = (n) => {
+  function showSlide(n) {
     slides.forEach(s => s.style.display = "none");
     dots.forEach(d => d.classList.remove("active"));
     slides[n].style.display = "block";
     dots[n].classList.add("active");
-  };
+  }
+
+  window.currentSlide = showSlide;
 
   document.querySelector(".banner-next").onclick = () => {
     currentIndex = (currentIndex + 1) % slides.length;
-    window.currentSlide(currentIndex);
+    showSlide(currentIndex);
   };
 
   document.querySelector(".banner-prev").onclick = () => {
     currentIndex = (currentIndex - 1 + slides.length) % slides.length;
-    window.currentSlide(currentIndex);
+    showSlide(currentIndex);
   };
+
+  // Touch swipe for banner
+  let touchStartX = 0;
+  let touchEndX = 0;
+
+  const slider = document.getElementById("bannerSlider");
+  slider.addEventListener("touchstart", e => {
+    touchStartX = e.changedTouches[0].screenX;
+  });
+
+  slider.addEventListener("touchend", e => {
+    touchEndX = e.changedTouches[0].screenX;
+    if (touchEndX < touchStartX - 50) document.querySelector(".banner-next").click();
+    if (touchEndX > touchStartX + 50) document.querySelector(".banner-prev").click();
+  });
 
   setInterval(() => {
     document.querySelector(".banner-next").click();
   }, 5000);
 
-  window.currentSlide(0);
+  showSlide(0);
 }
 
 function renderProducts(containerId, products) {
@@ -252,7 +263,6 @@ function toggleMenu(){
     font-family: Arial, sans-serif;
   }
 
-  /* Top bar dark */
   .top-bar {
     display: flex;
     align-items: center;
@@ -312,28 +322,37 @@ function toggleMenu(){
     }
   }
 
-  /* Circular categories */
+  /* Circular categories - PC center, mobile slide */
   .categories {
     display: flex;
     justify-content: center;
-    overflow-x: auto;
-    padding: 20px 15px 10px;
     gap: 28px;
-    scrollbar-width: none;
+    padding: 20px 15px 10px;
+    flex-wrap: wrap; /* PC पर wrap होकर center */
   }
 
-  .categories::-webkit-scrollbar { display: none; }
+  @media (max-width: 768px) {
+    .categories {
+      justify-content: flex-start;
+      overflow-x: auto;
+      flex-wrap: nowrap;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .categories::-webkit-scrollbar { display: none; }
+  }
 
   .category {
     text-align: center;
     min-width: 80px;
     cursor: pointer;
+    flex-shrink: 0;
   }
 
   .category-icon {
     width: 68px;
     height: 68px;
-    background: linear-gradient(135deg, #7c3aed, #ec4899);
+    background: linear-gradient(135deg, #00ff48, #00c8ff);
     border-radius: 50%;
     display: flex;
     align-items: center;
@@ -383,11 +402,12 @@ function toggleMenu(){
     gap: 16px;
     padding-bottom: 10px;
     scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
   }
 
   .videos::-webkit-scrollbar { display: none; }
 
-  /* Uniform product card */
+  /* Product card */
   .product-card {
     width: 180px;
     height: 440px;
@@ -520,7 +540,7 @@ function toggleMenu(){
     display: inline-block;
     width: 12px;
     height: 12px;
-    background: #555555;
+    background: #555;
     border-radius: 50%;
     margin: 0 6px;
     cursor: pointer;
