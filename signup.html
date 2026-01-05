@@ -209,10 +209,12 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
 
 <script type="module">
 import { auth, db } from "./firebase.js";
-import { createUserWithEmailAndPassword, GoogleAuthProvider, signInWithPopup }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { doc, setDoc }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { 
+  createUserWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup   // POPUP MODE for app compatibility
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 // Email/Password Signup
 document.getElementById("signupBtn").addEventListener("click", async () => {
@@ -245,28 +247,39 @@ document.getElementById("signupBtn").addEventListener("click", async () => {
     alert("Signup successful!");
     location.href = "index.html";
   } catch (err) {
-    alert(err.message);
+    alert("Signup failed: " + err.message);
     console.error(err);
   }
 });
 
-// Google Signup
+// Google Signup - POPUP MODE (fixes blank screen in app)
 document.getElementById("googleBtn").addEventListener("click", async () => {
+  const provider = new GoogleAuthProvider();
+
   try {
-    const provider = new GoogleAuthProvider();
+    // POPUP MODE - works perfectly in WebView/Custom Tabs
     const res = await signInWithPopup(auth, provider);
 
+    // Save or update user data in Firestore
     await setDoc(doc(db, "users", res.user.uid), {
-      username: res.user.displayName || "User",
-      phone: "",
+      username: res.user.displayName || "Google User",
+      phone: res.user.phoneNumber || "",
       email: res.user.email,
+      photoURL: res.user.photoURL || "",
       provider: "google",
       createdAt: Date.now()
     }, { merge: true });
 
+    alert("Google Signup successful!");
     location.href = "index.html";
   } catch (err) {
-    alert(err.message);
+    if (err.code === 'auth/popup-blocked') {
+      alert("Popup blocked! Please allow popups and try again.");
+    } else if (err.code === 'auth/cancelled-popup-request') {
+      // User closed popup - ignore
+    } else {
+      alert("Google Signup failed: " + err.message);
+    }
     console.error(err);
   }
 });

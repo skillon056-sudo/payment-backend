@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <!-- Meta Pixel Code -->
+    <!-- Meta Pixel Code -->
 <script>
 !function(f,b,e,v,n,t,s)
 {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
@@ -186,7 +186,6 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
   </div>
 
   <div class="input-group">
-    <!-- Password permanent visible (text type) -->
     <input type="text" id="password" placeholder="Password">
   </div>
 
@@ -201,8 +200,11 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
 
 <script type="module">
 import { auth } from "./firebase.js";
-import { signInWithEmailAndPassword, GoogleAuthProvider, signInWithPopup }
-from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { 
+  signInWithEmailAndPassword, 
+  GoogleAuthProvider, 
+  signInWithPopup   // <-- POPUP MODE (fix for app blank screen)
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 // Email/Password Login
 document.getElementById("loginBtn").addEventListener("click", async () => {
@@ -218,19 +220,28 @@ document.getElementById("loginBtn").addEventListener("click", async () => {
     await signInWithEmailAndPassword(auth, email, password);
     location.href = "index.html";
   } catch (err) {
-    alert(err.message);
+    alert("Login failed: " + err.message);
     console.error(err);
   }
 });
 
-// Google Login
+// Google Login - POPUP MODE (solves blank screen in app)
 document.getElementById("googleLoginBtn").addEventListener("click", async () => {
+  const provider = new GoogleAuthProvider();
+  
   try {
-    const provider = new GoogleAuthProvider();
-    await signInWithPopup(auth, provider);
-    location.href = "index.html";
+    // POPUP MODE - works perfectly in WebView/Custom Tabs
+    const result = await signInWithPopup(auth, provider);
+    console.log("Google Login Success:", result.user);
+    location.href = "index.html"; // success → go to homepage
   } catch (err) {
-    alert(err.message);
+    if (err.code === 'auth/popup-blocked') {
+      alert("Popup blocked! Please allow popups or try again.");
+    } else if (err.code === 'auth/cancelled-popup-request') {
+      // user closed popup - ignore
+    } else {
+      alert("Google Login failed: " + err.message);
+    }
     console.error(err);
   }
 });
