@@ -224,7 +224,7 @@ onAuthStateChanged(auth, async (user) => {
 
             // PURCHASE EVENT FIRE
             if (typeof fbq === 'function') {
-              fbq('track', 'Subscribe', {
+              fbq('track', 'Purchase', {
                 value: product.price,
                 currency: 'INR',
                 content_type: 'product',
