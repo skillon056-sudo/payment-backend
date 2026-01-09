@@ -18,17 +18,13 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
-<noscript><img height="1" width="1" style="display:none"
-src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
-/></noscript>
-<!-- End Meta Pixel Code -->
 <meta charset="UTF-8">
 <title>Product</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="stylesheet" href="style.css">
 
 <style>
-/* ===== TOP BAR ===== */
+/* तेरा पुराना style same रखा है */
 .product-top{
   position:sticky;
   top:0;
@@ -68,23 +64,6 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
 }
 .dropdown a:hover{background:#1a1a1a;}
 .dropdown.show{display:block;}
-
-/* ===== REVIEW UI ===== */
-.review{
-  border-bottom:1px solid #222;
-  padding:10px 0;
-}
-.review b{display:block;margin-bottom:4px;}
-#reviewForm textarea{
-  width:100%;
-  padding:12px;
-  border-radius:10px;
-  background:#111;
-  border:1px solid #222;
-  color:#fff;
-  margin-bottom:10px;
-}
-
 /* ===== TAGS ON PRODUCT PAGE ===== */
 .product-tags {
   display: flex;
@@ -138,7 +117,7 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
 
 <body>
 
-<!-- ===== TOP BAR ===== -->
+<!-- TOP BAR -->
 <header class="product-top">
   <button onclick="history.back()">←</button>
   <span>Product</span>
@@ -153,7 +132,7 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
   </div>
 </header>
 
-<!-- ===== PRODUCT ===== -->
+<!-- PRODUCT -->
 <div class="product-wrap">
 
   <div class="product-image">
@@ -163,7 +142,7 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
   <div class="product-info">
     <h1 id="productTitle">Loading...</h1>
 
-    <!-- TAGS YAHAN DIKHENGI -->
+    <!-- TAGS -->
     <div class="product-tags" id="productTags"></div>
 
     <div class="p-price" id="productPrice"></div>
@@ -177,7 +156,7 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
       <ul id="insideList"></ul>
     </div>
 
-    <!-- REVIEWS -->
+    <!-- REVIEWS (बिना login के भी दिखेंगे) -->
     <div class="review-box">
       <h3>Reviews</h3>
       <div id="reviewList"></div>
@@ -195,15 +174,13 @@ src="https://www.facebook.com/tr?id=1635984204035154&ev=PageView&noscript=1"
   </div>
 </div>
 
-<!-- ===== SCRIPT ===== -->
 <script type="module">
 import { db, auth } from "./firebase.js";
 import {
   doc, getDoc,
   collection, query, where, getDocs, addDoc
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { onAuthStateChanged } from
-"https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 const params = new URLSearchParams(location.search);
 const productId = params.get("id");
@@ -212,28 +189,24 @@ const orderId = params.get("order");
 const buyBtn = document.getElementById("buyBtn");
 const productTags = document.getElementById("productTags");
 
-let PRODUCT, USER;
+let PRODUCT;
+let currentUser = null;
 
-/* AUTH */
-onAuthStateChanged(auth, async (user) => {
-  if (!user) return location.href="login.html";
-  USER = user;
-  await loadProduct();
-  await loadReviews();
-  if (orderId) unlockDownload();
-});
+// LOAD PRODUCT (बिना login के भी)
+async function loadProduct() {
+  const snap = await getDoc(doc(db, "products", productId));
+  if (!snap.exists()) {
+    document.getElementById("productTitle").innerText = "Product not found";
+    return;
+  }
 
-/* LOAD PRODUCT */
-async function loadProduct(){
-  const snap = await getDoc(doc(db,"products",productId));
   PRODUCT = snap.data();
 
   document.getElementById("productImg").src = PRODUCT.image;
   document.getElementById("productTitle").innerText = PRODUCT.title;
-  document.getElementById("productPrice").innerText = "₹"+PRODUCT.price;
+  document.getElementById("productPrice").innerText = "₹" + PRODUCT.price;
   document.getElementById("productDesc").innerText = PRODUCT.description || "";
 
-  // TAGS GENERATE
   let tagsHTML = "";
   if (PRODUCT.isHotSelling) tagsHTML += `<span class="tag tag-hot">HOT SELLING</span>`;
   if (PRODUCT.isGood) tagsHTML += `<span class="tag tag-good">GOOD</span>`;
@@ -241,33 +214,65 @@ async function loadProduct(){
   productTags.innerHTML = tagsHTML;
 
   const insideList = document.getElementById("insideList");
-  insideList.innerHTML="";
-  if(Array.isArray(PRODUCT.inside)){
-    PRODUCT.inside.forEach(i=>{
+  insideList.innerHTML = "";
+  if (Array.isArray(PRODUCT.inside)) {
+    PRODUCT.inside.forEach(i => {
       insideList.innerHTML += `<li>${i}</li>`;
     });
   }
 }
 
-/* BUY */
-async function buyNow(){
-  buyBtn.innerText="Processing...";
-  buyBtn.disabled=true;
+// AUTH CHECK
+onAuthStateChanged(auth, async (user) => {
+  currentUser = user;
+
+  // Product हमेशा load होगा
+  await loadProduct();
+
+  // Reviews हमेशा load होंगे (बिना login के भी)
+  await loadReviews();
+
+  if (orderId) {
+    unlockDownload(); // paid order से आया तो download unlock
+  }
+
+  // Login नहीं है → Buy और Review Write पर login redirect
+  if (!user) {
+    buyBtn.onclick = () => {
+      const redirectUrl = encodeURIComponent(location.href);
+      location.href = `login.html?redirect=${redirectUrl}`;
+    };
+
+    document.getElementById("reviewBtn").onclick = () => {
+      const redirectUrl = encodeURIComponent(location.href);
+      location.href = `login.html?redirect=${redirectUrl}`;
+    };
+    return;
+  }
+
+  // Login है → normal buy + review submit
+  buyBtn.onclick = buyNow;
+});
+
+// BUY NOW (login होने पर)
+async function buyNow() {
+  buyBtn.innerText = "Processing...";
+  buyBtn.disabled = true;
 
   const res = await fetch(
     "https://api.digitalcart.space/api/create-order",
     {
-      method:"POST",
-      headers:{ "Content-Type":"application/json" },
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         productId,
-        userId: USER.uid
+        userId: currentUser.uid
       })
     }
   );
 
   const data = await res.json();
-  if(data.status!=="success"){
+  if (data.status !== "success") {
     alert(data.message);
     resetBtn();
     return;
@@ -275,37 +280,35 @@ async function buyNow(){
   location.href = data.payment_url;
 }
 
-function unlockDownload(){
-  buyBtn.innerText="DOWNLOAD";
-  buyBtn.disabled=false;
-  buyBtn.onclick=()=>location.href=PRODUCT.fileUrl;
+function unlockDownload() {
+  buyBtn.innerText = "DOWNLOAD";
+  buyBtn.disabled = false;
+  buyBtn.onclick = () => location.href = PRODUCT.fileUrl;
 }
 
-function resetBtn(){
-  buyBtn.innerText="BUY NOW";
-  buyBtn.disabled=false;
+function resetBtn() {
+  buyBtn.innerText = "BUY NOW";
+  buyBtn.disabled = false;
 }
 
-buyBtn.addEventListener("click", buyNow);
-
-/* LOAD REVIEWS */
-async function loadReviews(){
-  const q = query(collection(db,"reviews"),
-    where("productId","==",productId)
+// REVIEWS LOAD (बिना login के भी)
+async function loadReviews() {
+  const q = query(collection(db, "reviews"),
+    where("productId", "==", productId)
   );
   const snap = await getDocs(q);
 
   const reviewList = document.getElementById("reviewList");
-  reviewList.innerHTML="";
-  if(snap.empty){
-    document.getElementById("noReview").style.display="block";
+  reviewList.innerHTML = "";
+  if (snap.empty) {
+    document.getElementById("noReview").style.display = "block";
     return;
   }
-  document.getElementById("noReview").style.display="none";
+  document.getElementById("noReview").style.display = "none";
 
-  snap.forEach(d=>{
-    const r=d.data();
-    reviewList.innerHTML+=`
+  snap.forEach(d => {
+    const r = d.data();
+    reviewList.innerHTML += `
       <div class="review">
         <b>${r.name}</b>
         <p>${r.message}</p>
@@ -314,48 +317,29 @@ async function loadReviews(){
   });
 }
 
-/* REVIEW LOGIC */
-document.getElementById("reviewBtn").onclick = async ()=>{
-  const q1 = query(collection(db,"orders"),
-    where("userId","==",USER.uid),
-    where("productId","==",productId),
-    where("status","==","paid")
-  );
-  const orderSnap = await getDocs(q1);
-  if(orderSnap.empty){
-    document.getElementById("reviewStatus").innerText="❌ You have to buy product first";
+// REVIEW SUBMIT (login check)
+document.getElementById("submitReview").onclick = async () => {
+  if (!currentUser) {
+    const redirectUrl = encodeURIComponent(location.href);
+    location.href = `login.html?redirect=${redirectUrl}`;
     return;
   }
 
-  const q2 = query(collection(db,"reviews"),
-    where("userId","==",USER.uid),
-    where("productId","==",productId)
-  );
-  const reviewSnap = await getDocs(q2);
-  if(reviewSnap.size>=2){
-    document.getElementById("reviewStatus").innerText="❌ Max 2 reviews allowed";
-    return;
-  }
-
-  document.getElementById("reviewForm").style.display="block";
-};
-
-document.getElementById("submitReview").onclick = async ()=>{
   const msg = document.getElementById("reviewMsg").value.trim();
-  if(!msg) return;
+  if (!msg) return;
 
-  await addDoc(collection(db,"reviews"),{
+  await addDoc(collection(db, "reviews"), {
     productId,
-    userId: USER.uid,
-    name: USER.displayName || "User",
+    userId: currentUser.uid,
+    name: currentUser.displayName || "User",
     message: msg,
-    source:"user",
-    createdAt:new Date()
+    source: "user",
+    createdAt: new Date()
   });
 
-  document.getElementById("reviewForm").style.display="none";
-  document.getElementById("reviewMsg").value="";
-  document.getElementById("reviewStatus").innerText="✅ Review submitted";
+  document.getElementById("reviewForm").style.display = "none";
+  document.getElementById("reviewMsg").value = "";
+  document.getElementById("reviewStatus").innerText = "✅ Review submitted";
   loadReviews();
 };
 </script>
@@ -365,11 +349,8 @@ function toggleMenu(){
   document.getElementById("menu").classList.toggle("show");
 }
 </script>
-<a
-  href="https://whatsapp.com/channel/0029VbBXLcEInlqPTCsYFG1r"
-  target="_blank"
-  class="whatsapp-float"
->
+
+<a href="https://whatsapp.com/channel/0029VbBXLcEInlqPTCsYFG1r" target="_blank" class="whatsapp-float">
   <img src="https://upload.wikimedia.org/wikipedia/commons/6/6b/WhatsApp.svg" />
 </a>
 
