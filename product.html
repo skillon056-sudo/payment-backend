@@ -24,7 +24,7 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 <link rel="stylesheet" href="style.css">
 
 <style>
-/* तेरा पुराना style same रखा है */
+/* पुराना style same */
 .product-top{
   position:sticky;
   top:0;
@@ -64,60 +64,139 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 }
 .dropdown a:hover{background:#1a1a1a;}
 .dropdown.show{display:block;}
-/* ===== TAGS ON PRODUCT PAGE ===== */
+
+/* TAGS */
 .product-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin: 10px 0;
+  justify-content: center;
 }
-
 .tag {
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 12px;
   font-weight: bold;
-  letter-spacing: 0.5px;
 }
+.tag-hot { background: #ff4444; color: white; animation: pulse-glow-red 2s infinite; }
+.tag-good { background: #00ff88; color: black; animation: pulse-glow 2s infinite; }
+.tag-useful { background: #ffaa00; color: black; animation: pulse-glow 2s infinite; }
+@keyframes pulse-glow { 0% { box-shadow: 0 0 15px currentColor; } 50% { box-shadow: 0 0 25px currentColor; } 100% { box-shadow: 0 0 15px currentColor; } }
+@keyframes pulse-glow-red { 0% { box-shadow: 0 0 15px #ff4444; } 50% { box-shadow: 0 0 30px #ff4444; } 100% { box-shadow: 0 0 15px #ff4444; } }
 
-.tag-hot {
-  background: #ff4444;
+/* Review Form */
+#reviewForm {
+  margin-top: 15px;
+  padding: 15px;
+  background: #111;
+  border-radius: 12px;
+  border: 1px solid #333;
+}
+#reviewMsg {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  background: #0f0f0f;
+  border: 1px solid #444;
+  border-radius: 8px;
   color: white;
-  box-shadow: 0 0 15px #ff4444;
-  animation: pulse-glow-red 2s infinite;
+  font-size: 15px;
+  resize: vertical;
+}
+#submitReview {
+  margin-top: 10px;
+  width: 100%;
 }
 
-.tag-good {
-  background: #00ff88;
-  color: black;
-  box-shadow: 0 0 15px #00ff88;
-  animation: pulse-glow 2s infinite;
+/* More Products - Page के सबसे नीचे, center aligned, PC 4 per row */
+.more-products {
+  margin: 80px auto 100px; /* ऊपर से अच्छा space, नीचे भी */
+  max-width: 1200px;
+  padding: 0 15px;
+}
+.more-products h3 {
+  font-size: 26px;
+  margin-bottom: 40px;
+  text-align: center;
+  color: #fff;
+}
+.more-grid {
+  display: grid;
+  gap: 30px;
+  justify-items: center;
+}
+.more-card {
+  background: #0f0f0f;
+  border: 1px solid #222;
+  border-radius: 16px;
+  overflow: hidden;
+  text-decoration: none;
+  color: white;
+  transition: all 0.3s;
+  width: 100%;
+  max-width: 280px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+}
+.more-card:hover {
+  transform: translateY(-12px);
+  box-shadow: 0 15px 40px rgba(0, 255, 136, 0.25);
+}
+.more-card img {
+  width: 100%;
+  height: 220px;
+  object-fit: cover;
+}
+.more-card-info {
+  padding: 20px;
+  text-align: center;
+}
+.more-card-title {
+  font-size: 18px;
+  margin-bottom: 10px;
+  height: 50px;
+  overflow: hidden;
+}
+.more-card-price {
+  font-size: 22px;
+  color: #00ff88;
+  font-weight: bold;
+}
+.more-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
 }
 
-.tag-useful {
-  background: #ffaa00;
-  color: black;
-  box-shadow: 0 0 15px #ffaa00;
-  animation: pulse-glow 2s infinite;
+/* Responsive: PC पर 4, Mobile पर 2 */
+@media (min-width: 1025px) {
+  .more-grid {
+    grid-template-columns: repeat(4, 1fr); /* PC पर 4 per row */
+  }
+}
+@media (max-width: 1024px) {
+  .more-grid {
+    grid-template-columns: repeat(2, 1fr); /* Mobile पर 2 per row */
+  }
 }
 
-@keyframes pulse-glow {
-  0% { box-shadow: 0 0 15px currentColor; }
-  50% { box-shadow: 0 0 25px currentColor, 0 0 35px currentColor; }
-  100% { box-shadow: 0 0 15px currentColor; }
-}
-
-@keyframes pulse-glow-red {
-  0% { box-shadow: 0 0 15px #ff4444; }
-  50% { box-shadow: 0 0 30px #ff4444, 0 0 40px #ff0000; }
-  100% { box-shadow: 0 0 15px #ff4444; }
+/* Sticky Review Button */
+.review-actions {
+  position: sticky;
+  top: 80px;
+  z-index: 999;
+  background: #05050500;
+  padding: 15px 0;
+  text-align: center;
+  border-bottom: 1px solid #222;
 }
 </style>
 </head>
 
 <body>
 
-<!-- TOP BAR -->
 <header class="product-top">
   <button onclick="history.back()">←</button>
   <span>Product</span>
@@ -132,9 +211,7 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
   </div>
 </header>
 
-<!-- PRODUCT -->
 <div class="product-wrap">
-
   <div class="product-image">
     <img id="productImg">
   </div>
@@ -142,7 +219,6 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
   <div class="product-info">
     <h1 id="productTitle">Loading...</h1>
 
-    <!-- TAGS -->
     <div class="product-tags" id="productTags"></div>
 
     <div class="p-price" id="productPrice"></div>
@@ -150,28 +226,35 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 
     <button id="buyBtn" class="buy-btn">BUY NOW</button>
 
-    <!-- WHAT YOU GET -->
     <div class="inside-box">
       <h3>What you will get</h3>
       <ul id="insideList"></ul>
     </div>
 
-    <!-- REVIEWS (बिना login के भी दिखेंगे) -->
+    <!-- REVIEWS -->
     <div class="review-box">
       <h3>Reviews</h3>
       <div id="reviewList"></div>
       <p id="noReview" class="muted">No reviews yet</p>
 
-      <button id="reviewBtn" class="buy-btn">WRITE A REVIEW</button>
+      <div class="review-actions">
+        <button id="reviewBtn" class="buy-btn">WRITE A REVIEW</button>
+      </div>
 
       <div id="reviewForm" style="display:none;">
-        <textarea id="reviewMsg" placeholder="Write your review"></textarea>
-        <button id="submitReview" class="buy-btn">SUBMIT</button>
+        <textarea id="reviewMsg" placeholder="Write your honest review here... (minimum 10 characters)"></textarea>
+        <button id="submitReview" class="buy-btn">SUBMIT REVIEW</button>
       </div>
 
       <p id="reviewStatus" class="muted"></p>
     </div>
   </div>
+</div>
+
+<!-- MORE PRODUCTS - page के सबसे नीचे, center aligned -->
+<div class="more-products">
+  <h3>More Products You Might Like</h3>
+  <div class="more-grid" id="moreProductsGrid"></div>
 </div>
 
 <script type="module">
@@ -188,11 +271,17 @@ const orderId = params.get("order");
 
 const buyBtn = document.getElementById("buyBtn");
 const productTags = document.getElementById("productTags");
+const reviewBtn = document.getElementById("reviewBtn");
+const reviewForm = document.getElementById("reviewForm");
+const submitReview = document.getElementById("submitReview");
+const reviewStatus = document.getElementById("reviewStatus");
+const reviewMsg = document.getElementById("reviewMsg");
+const moreGrid = document.getElementById("moreProductsGrid");
 
 let PRODUCT;
 let currentUser = null;
 
-// LOAD PRODUCT (बिना login के भी)
+// LOAD PRODUCT
 async function loadProduct() {
   const snap = await getDoc(doc(db, "products", productId));
   if (!snap.exists()) {
@@ -220,41 +309,38 @@ async function loadProduct() {
       insideList.innerHTML += `<li>${i}</li>`;
     });
   }
+
+  await loadMoreProducts();
 }
 
 // AUTH CHECK
 onAuthStateChanged(auth, async (user) => {
   currentUser = user;
 
-  // Product हमेशा load होगा
   await loadProduct();
-
-  // Reviews हमेशा load होंगे (बिना login के भी)
   await loadReviews();
 
   if (orderId) {
-    unlockDownload(); // paid order से आया तो download unlock
+    unlockDownload();
   }
 
-  // Login नहीं है → Buy और Review Write पर login redirect
   if (!user) {
     buyBtn.onclick = () => {
       const redirectUrl = encodeURIComponent(location.href);
       location.href = `login.html?redirect=${redirectUrl}`;
     };
 
-    document.getElementById("reviewBtn").onclick = () => {
+    reviewBtn.onclick = () => {
       const redirectUrl = encodeURIComponent(location.href);
       location.href = `login.html?redirect=${redirectUrl}`;
     };
     return;
   }
 
-  // Login है → normal buy + review submit
   buyBtn.onclick = buyNow;
 });
 
-// BUY NOW (login होने पर)
+// BUY NOW
 async function buyNow() {
   buyBtn.innerText = "Processing...";
   buyBtn.disabled = true;
@@ -291,56 +377,157 @@ function resetBtn() {
   buyBtn.disabled = false;
 }
 
-// REVIEWS LOAD (बिना login के भी)
+// LOAD REVIEWS
 async function loadReviews() {
-  const q = query(collection(db, "reviews"),
-    where("productId", "==", productId)
-  );
-  const snap = await getDocs(q);
+  try {
+    const q = query(
+      collection(db, "reviews"),
+      where("productId", "==", productId)
+    );
+    const snap = await getDocs(q);
 
-  const reviewList = document.getElementById("reviewList");
-  reviewList.innerHTML = "";
-  if (snap.empty) {
-    document.getElementById("noReview").style.display = "block";
-    return;
+    const reviewList = document.getElementById("reviewList");
+    reviewList.innerHTML = "";
+
+    if (snap.empty) {
+      document.getElementById("noReview").style.display = "block";
+      return;
+    }
+
+    document.getElementById("noReview").style.display = "none";
+
+    snap.forEach(d => {
+      const r = d.data();
+      reviewList.innerHTML += `
+        <div class="review">
+          <b>${r.name || "Anonymous"}</b>
+          <p>${r.message || "No message"}</p>
+        </div>
+      `;
+    });
+  } catch (err) {
+    console.error("Reviews load error:", err);
+    document.getElementById("noReview").innerText = "Error loading reviews";
   }
-  document.getElementById("noReview").style.display = "none";
-
-  snap.forEach(d => {
-    const r = d.data();
-    reviewList.innerHTML += `
-      <div class="review">
-        <b>${r.name}</b>
-        <p>${r.message}</p>
-      </div>
-    `;
-  });
 }
 
-// REVIEW SUBMIT (login check)
-document.getElementById("submitReview").onclick = async () => {
+// MORE PRODUCTS - Page के सबसे नीचे, center aligned, PC 4 per row
+async function loadMoreProducts() {
+  try {
+    const q = query(collection(db, "products"));
+    const snap = await getDocs(q);
+
+    moreGrid.innerHTML = "";
+
+    let count = 0;
+    const productsList = [];
+    snap.forEach(d => {
+      if (d.id !== productId) productsList.push({id: d.id, ...d.data()});
+    });
+
+    // Random shuffle
+    for (let i = productsList.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [productsList[i], productsList[j]] = [productsList[j], productsList[i]];
+    }
+
+    productsList.slice(0, 4).forEach(p => {
+      let tagsHTML = "";
+      if (p.isHotSelling) tagsHTML += `<span class="tag tag-hot">HOT SELLING</span>`;
+      if (p.isGood) tagsHTML += `<span class="tag tag-good">GOOD</span>`;
+      if (p.isUseful) tagsHTML += `<span class="tag tag-useful">USEFUL</span>`;
+
+      moreGrid.innerHTML += `
+        <a href="product.html?id=${p.id}" class="more-card">
+          <img src="${p.image}" alt="${p.title}">
+          <div class="more-card-info">
+            <div class="more-card-title">${p.title}</div>
+            <div class="more-card-price">₹${p.price}</div>
+            <div class="more-card-tags">${tagsHTML}</div>
+          </div>
+        </a>
+      `;
+      count++;
+    });
+
+    if (count === 0) {
+      moreGrid.innerHTML = "<p style='text-align:center;color:#777;'>No more products available</p>";
+    }
+  } catch (err) {
+    console.error("More products error:", err);
+    moreGrid.innerHTML = "<p style='text-align:center;color:#777;'>Error loading more products</p>";
+  }
+}
+
+// REVIEW BUTTON
+reviewBtn.onclick = async () => {
   if (!currentUser) {
     const redirectUrl = encodeURIComponent(location.href);
     location.href = `login.html?redirect=${redirectUrl}`;
     return;
   }
 
-  const msg = document.getElementById("reviewMsg").value.trim();
-  if (!msg) return;
+  const q1 = query(
+    collection(db, "orders"),
+    where("userId", "==", currentUser.uid),
+    where("productId", "==", productId),
+    where("status", "==", "paid")
+  );
+  const orderSnap = await getDocs(q1);
+  if (orderSnap.empty) {
+    reviewStatus.innerText = "❌ You have to buy product first";
+    return;
+  }
 
-  await addDoc(collection(db, "reviews"), {
-    productId,
-    userId: currentUser.uid,
-    name: currentUser.displayName || "User",
-    message: msg,
-    source: "user",
-    createdAt: new Date()
-  });
+  const q2 = query(
+    collection(db, "reviews"),
+    where("userId", "==", currentUser.uid),
+    where("productId", "==", productId)
+  );
+  const reviewSnap = await getDocs(q2);
+  if (reviewSnap.size >= 2) {
+    reviewStatus.innerText = "❌ Max 2 reviews allowed per product";
+    return;
+  }
 
-  document.getElementById("reviewForm").style.display = "none";
-  document.getElementById("reviewMsg").value = "";
-  document.getElementById("reviewStatus").innerText = "✅ Review submitted";
-  loadReviews();
+  reviewForm.style.display = "block";
+  reviewStatus.innerText = "";
+};
+
+// SUBMIT REVIEW
+submitReview.onclick = async () => {
+  if (!currentUser) return;
+
+  const msg = reviewMsg.value.trim();
+  if (msg.length < 10) {
+    reviewStatus.innerText = "❌ Review must be at least 10 characters";
+    return;
+  }
+
+  submitReview.innerText = "Submitting...";
+  submitReview.disabled = true;
+
+  try {
+    await addDoc(collection(db, "reviews"), {
+      productId,
+      userId: currentUser.uid,
+      name: currentUser.displayName || "User",
+      message: msg,
+      source: "user",
+      createdAt: new Date()
+    });
+
+    reviewForm.style.display = "none";
+    reviewMsg.value = "";
+    reviewStatus.innerText = "✅ Thank you! Your review has been submitted.";
+    await loadReviews();
+  } catch (err) {
+    reviewStatus.innerText = "❌ Error submitting review.";
+    console.error(err);
+  }
+
+  submitReview.innerText = "SUBMIT REVIEW";
+  submitReview.disabled = false;
 };
 </script>
 
