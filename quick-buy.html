@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quick Buy - Digital Cart</title>
+  <style>
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background: #050505;
+      font-family: Arial, sans-serif;
+      color: white;
+    }
+    .quick-box {
+      width: 380px;
+      background: #0a0a0a;
+      padding: 40px 30px;
+      border-radius: 20px;
+      text-align: center;
+      box-shadow: 0 0 40px rgba(0, 255, 238, 0.3);
+      border: 1px solid #1f1f1f;
+    }
+    h2 {
+      font-size: 28px;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, #00ffee, #00ff88);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    input {
+      width: 100%;
+      padding: 16px;
+      margin: 15px 0;
+      background: #111;
+      border: 1px solid #333;
+      border-radius: 12px;
+      color: white;
+      font-size: 16px;
+      outline: none;
+      box-sizing: border-box;
+    }
+    input:focus {
+      border-color: #00ffee;
+      box-shadow: 0 0 20px rgba(0, 255, 238, 0.4);
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      margin-top: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    #createBtn {
+      background: linear-gradient(90deg, #00ffee, #00ff88);
+      color: black;
+    }
+    #createBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 255, 238, 0.5);
+    }
+    #payBtn {
+      background: #00ff88;
+      color: black;
+      display: none; /* initially hidden */
+    }
+    #payBtn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 30px rgba(0, 255, 136, 0.5);
+    }
+    .status {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+    .back-btn {
+      background: #333;
+      color: white;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="quick-box">
+  <h2>Quick Buy</h2>
+  <p>Enter your details to continue</p>
+
+  <input type="tel" id="phone" placeholder="Mobile Number (10 digits)" maxlength="10">
+  <input type="password" id="password" placeholder="Password (min 6 chars)">
+
+  <button id="createBtn">Continue To pay</button>
+  <button id="payBtn">Continue To Pay</button>
+
+  <p id="status" class="status"></p>
+  <button class="back-btn" onclick="history.back()">Back</button>
+</div>
+
+<script type="module">
+import { auth, db } from "./firebase.js";
+import { createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+const productId = params.get("id");
+
+const createBtn = document.getElementById("createBtn");
+const payBtn = document.getElementById("payBtn");
+const status = document.getElementById("status");
+
+createBtn.addEventListener("click", async () => {
+  const phone = document.getElementById("phone").value.trim();
+  const password = document.getElementById("password").value;
+
+  if (!phone || phone.length !== 10 || isNaN(phone)) {
+    status.innerText = "❌ Please enter valid 10-digit mobile number";
+    return;
+  }
+
+  if (password.length < 6) {
+    status.innerText = "❌ Password must be at least 6 characters";
+    return;
+  }
+
+  // Dummy email bana (phone@quickbuy.com)
+  const email = `${phone}@quickbuy.com`;
+
+  createBtn.innerText = "Creating...";
+  createBtn.disabled = true;
+
+  try {
+    const res = await createUserWithEmailAndPassword(auth, email, password);
+
+    // User data save in Firestore
+    await setDoc(doc(db, "users", res.user.uid), {
+      phone: phone,
+      email: email,
+      provider: "quick",
+      createdAt: new Date()
+    });
+
+    status.innerText = "✅ Account created successfully!";
+    createBtn.style.display = "none";
+    payBtn.style.display = "block"; // Show Continue To Pay
+
+    // Continue To Pay button click → direct payment
+    payBtn.addEventListener("click", async () => {
+      payBtn.innerText = "Redirecting...";
+      payBtn.disabled = true;
+
+      try {
+        const orderRes = await fetch(
+          "https://api.digitalcart.space/api/create-order",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              productId,
+              userId: res.user.uid
+            })
+          }
+        );
+
+        const data = await orderRes.json();
+        if (data.status === "success") {
+          location.href = data.payment_url; // Direct payment page
+        } else {
+          status.innerText = "❌ " + data.message;
+          payBtn.innerText = "Continue To Pay";
+          payBtn.disabled = false;
+        }
+      } catch (err) {
+        status.innerText = "❌ Payment initiation failed";
+        console.error(err);
+        payBtn.innerText = "Continue To Pay";
+        payBtn.disabled = false;
+      }
+    });
+  } catch (err) {
+    status.innerText = "❌ Error: " + err.message;
+    createBtn.innerText = "Continue To Pay";
+    createBtn.disabled = false;
+  }
+});
+</script>
+
+</body>
+</html>

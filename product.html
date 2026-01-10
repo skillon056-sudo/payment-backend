@@ -24,7 +24,7 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 <link rel="stylesheet" href="style.css">
 
 <style>
-/* पुराना style same */
+/* तेरा पुराना style same रखा है */
 .product-top{
   position:sticky;
   top:0;
@@ -111,7 +111,7 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 
 /* More Products - Page के सबसे नीचे, center aligned, PC 4 per row */
 .more-products {
-  margin: 80px auto 100px; /* ऊपर से अच्छा space, नीचे भी */
+  margin: 80px auto 100px;
   max-width: 1200px;
   padding: 0 15px;
 }
@@ -173,12 +173,12 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
 /* Responsive: PC पर 4, Mobile पर 2 */
 @media (min-width: 1025px) {
   .more-grid {
-    grid-template-columns: repeat(4, 1fr); /* PC पर 4 per row */
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 @media (max-width: 1024px) {
   .more-grid {
-    grid-template-columns: repeat(2, 1fr); /* Mobile पर 2 per row */
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
@@ -187,7 +187,7 @@ src="https://www.facebook.com/tr?id=1946316369633479&ev=PageView&noscript=1"
   position: sticky;
   top: 80px;
   z-index: 999;
-  background: #05050500;
+  background: #050505;
   padding: 15px 0;
   text-align: center;
   border-bottom: 1px solid #222;
@@ -326,8 +326,9 @@ onAuthStateChanged(auth, async (user) => {
 
   if (!user) {
     buyBtn.onclick = () => {
-      const redirectUrl = encodeURIComponent(location.href);
-      location.href = `login.html?redirect=${redirectUrl}`;
+      // Login नहीं है → quick-buy page पर भेजो
+      location.href = `quick-buy.html?id=${productId}`;
+      return;
     };
 
     reviewBtn.onclick = () => {
@@ -337,10 +338,11 @@ onAuthStateChanged(auth, async (user) => {
     return;
   }
 
+  // Login है → normal buy flow
   buyBtn.onclick = buyNow;
 });
 
-// BUY NOW
+// BUY NOW (login होने पर)
 async function buyNow() {
   buyBtn.innerText = "Processing...";
   buyBtn.disabled = true;
@@ -411,7 +413,7 @@ async function loadReviews() {
   }
 }
 
-// MORE PRODUCTS - Page के सबसे नीचे, center aligned, PC 4 per row
+// MORE PRODUCTS
 async function loadMoreProducts() {
   try {
     const q = query(collection(db, "products"));
@@ -425,7 +427,6 @@ async function loadMoreProducts() {
       if (d.id !== productId) productsList.push({id: d.id, ...d.data()});
     });
 
-    // Random shuffle
     for (let i = productsList.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [productsList[i], productsList[j]] = [productsList[j], productsList[i]];
