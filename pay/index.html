@@ -1,17 +1,31 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Complete Payment</title>
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<h2>Complete Your Payment</h2>
+<div class="container">
+  <h1 class="title">🎮 COMPLETE PAYMENT</h1>
 
-<p>Order ID: <span id="orderId"></span></p>
-<p>Amount: ₹<span id="amount"></span></p>
+  <div class="card">
+    <p class="label">Order ID</p>
+    <p class="value" id="orderId"></p>
 
-<p id="status">Waiting for payment...</p>
+    <p class="label">Amount</p>
+    <p class="value">₹<span id="amount"></span></p>
+  </div>
+
+  <div class="card qr-card">
+    <p class="label">Scan & Pay (UPI)</p>
+    <img id="qrImage" alt="UPI QR Code" />
+    <p class="hint">Use any UPI app (GPay / PhonePe / Paytm)</p>
+  </div>
+
+  <p id="status">Waiting for payment...</p>
+</div>
 
 <script src="app.js"></script>
 </body>
