@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Edit Product Gallery</title>
+  <meta charset="UTF-8">
+  <style>
+    body{
+      background:#0a0a0a;
+      color:white;
+      font-family:sans-serif;
+      padding:30px;
+    }
+    textarea{
+      width:100%;
+      min-height:160px;
+      background:#111;
+      border:1px solid #333;
+      color:white;
+      padding:12px;
+      border-radius:10px;
+    }
+    button{
+      margin-top:15px;
+      padding:12px 20px;
+      background:#00ff88;
+      border:none;
+      font-weight:bold;
+      cursor:pointer;
+      border-radius:10px;
+    }
+    .note{color:#777;margin-top:10px;}
+  </style>
+</head>
+<body>
+
+<h2>Edit Product Gallery</h2>
+
+<textarea id="galleryInput" placeholder="One image URL per line"></textarea>
+
+<button id="saveGallery">SAVE GALLERY</button>
+<p id="status" class="note"></p>
+
+<script type="module">
+import { db } from "./firebase.js";
+import {
+  doc, getDoc, updateDoc
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const params = new URLSearchParams(location.search);
+const productId = params.get("id");
+
+const galleryInput = document.getElementById("galleryInput");
+const status = document.getElementById("status");
+
+async function loadProduct(){
+  const snap = await getDoc(doc(db,"products",productId));
+  if(!snap.exists()) return;
+
+  const data = snap.data();
+  if(Array.isArray(data.gallery)){
+    galleryInput.value = data.gallery.join("\n");
+  }
+}
+
+document.getElementById("saveGallery").onclick = async () => {
+  const urls = galleryInput.value
+    .split("\n")
+    .map(u => u.trim())
+    .filter(Boolean);
+
+  await updateDoc(doc(db,"products",productId),{
+    gallery: urls
+  });
+
+  status.innerText = "✅ Gallery updated successfully";
+};
+
+loadProduct();
+</script>
+
+</body>
+</html>
