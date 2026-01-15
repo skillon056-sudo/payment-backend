@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Complete Payment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<div class="card">
+  <h2>🎮 COMPLETE PAYMENT</h2>
+  <p id="amount">Amount: ₹69</p>
+
+  <!-- PAYMENT OPTIONS -->
+  <div class="options">
+    <label class="option">
+      <input type="radio" name="paymode" value="qr" checked />
+      <span>Pay by QR</span>
+    </label>
+
+    <label class="option">
+      <input type="radio" name="paymode" value="app" />
+      <span>Pay with App</span>
+    </label>
+  </div>
+
+  <!-- PAY BUTTON -->
+  <button id="payBtn">Pay Now</button>
+
+  <p class="note">Secure UPI payment</p>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const order = params.get("order");
+
+  if (!order) {
+    alert("Invalid order");
+  }
+
+  document.getElementById("payBtn").onclick = () => {
+    window.location.href = `pay.html?order=${order}`;
+  };
+</script>
+
+</body>
+</html>

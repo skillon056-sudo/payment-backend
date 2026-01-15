@@ -1,61 +1,64 @@
 const params = new URLSearchParams(location.search);
 const order = params.get("order");
 
-const qrBox = document.getElementById("qrBox");
-const qrImg = document.getElementById("qrImg");
-const apps = document.getElementById("apps");
-const amountEl = document.getElementById("amount");
+const qrImg = document.getElementById("qr");
+const popup = document.getElementById("popup");
+const popupBox = document.getElementById("popupBox");
 
-let paymentData = "";
 let autoCheckUrl = "";
 
-async function init(){
-  const res = await fetch("https://api.digitalcart.space/api/order-info",{
-    method:"POST",
-    headers:{ "Content-Type":"application/json" },
-    body:JSON.stringify({ order })
-  });
-  const data = await res.json();
-
-  paymentData = data.payment_data;
-  autoCheckUrl = data.auto_check_url;
-  amountEl.innerText = data.amount;
-
+// LOAD ORDER
+fetch("https://api.digitalcart.space/api/order-info",{
+  method:"POST",
+  headers:{ "Content-Type":"application/json" },
+  body:JSON.stringify({ order })
+})
+.then(r=>r.json())
+.then(d=>{
   qrImg.src =
-   "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
-   encodeURIComponent(paymentData);
+   "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" +
+   encodeURIComponent(d.payment_data);
 
+  autoCheckUrl = d.auto_check_url;
   startAutoCheck();
-}
-
-document.querySelectorAll("input[name='method']").forEach(r=>{
-  r.onchange = ()=>{
-    if(r.value==="qr"){
-      qrBox.classList.remove("hidden");
-      apps.style.display="none";
-    }else{
-      qrBox.classList.add("hidden");
-      apps.style.display="grid";
-    }
-  }
 });
 
-document.querySelectorAll(".apps button").forEach(btn=>{
-  btn.onclick = ()=>{
-    window.location.href = paymentData;
-  };
-});
-
+// AUTO CHECK
 function startAutoCheck(){
   const iv = setInterval(async ()=>{
-    const res = await fetch(autoCheckUrl);
-    const j = await res.json();
+    const r = await fetch(autoCheckUrl);
+    const j = await r.json();
 
-    if(j.status==="SUCCESS"){
+    if(j.status === "SUCCESS"){
       clearInterval(iv);
-      location.href = "/success.html?order="+order;
+      showSuccess();
     }
+
+    if(j.status === "FAILED"){
+      clearInterval(iv);
+      showFail();
+    }
+
   },2000);
 }
 
-init();
+// SUCCESS POPUP
+function showSuccess(){
+  popup.classList.remove("hidden");
+  popupBox.innerHTML = `
+    <h2>✅ Payment Successful</h2>
+    <p>Redirecting…</p>
+  `;
+  setTimeout(()=>{
+    location.href = `/success.html?order=${order}`;
+  },2000);
+}
+
+// FAIL POPUP
+function showFail(){
+  popup.classList.remove("hidden");
+  popupBox.innerHTML = `
+    <h2>❌ Payment Failed</h2>
+    <button onclick="location.href='index.html'">Try Again</button>
+  `;
+}

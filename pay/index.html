@@ -1,65 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <title>Complete Payment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <link rel="stylesheet" href="style.css"/>
-</head>
-<body>
+body{
+  background:#0b1020;
+  color:#fff;
+  font-family:system-ui;
+  display:flex;
+  justify-content:center;
+}
+.box,.pay-screen{
+  margin-top:80px;
+  background:#121b3a;
+  padding:20px;
+  border-radius:16px;
+  width:90%;
+  max-width:360px;
+  text-align:center;
+}
+button{
+  margin-top:20px;
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:14px;
+  background:#00d2ff;
+  font-weight:700;
+}
+img{margin:20px 0}
 
-<div class="app">
-
-  <!-- HEADER -->
-  <div class="header">
-    <span class="back">←</span>
-    <div>
-      <div class="title">Complete Payment</div>
-      <div class="timer" id="timer">Link valid for 15:00</div>
-    </div>
-  </div>
-
-  <!-- OFFER -->
-  <div class="offer">
-    <span>🎁 Use CRED UPI & get rewards</span>
-    <button>Apply</button>
-  </div>
-
-  <!-- PAYMENT OPTIONS -->
-  <div class="options">
-    <label class="option">
-      <input type="radio" name="method" value="upi" checked />
-      <span>Pay with App</span>
-    </label>
-
-    <label class="option">
-      <input type="radio" name="method" value="qr" />
-      <span>Pay by QR</span>
-    </label>
-  </div>
-
-  <!-- QR -->
-  <div class="qr-box hidden" id="qrBox">
-    <img id="qrImg" />
-    <p>Scan using any UPI App</p>
-  </div>
-
-  <!-- INTENTS -->
-  <div class="apps" id="apps">
-    <button data-app="phonepe">PhonePe</button>
-    <button data-app="gpay">GPay</button>
-    <button data-app="paytm">Paytm</button>
-    <button data-app="bhim">BHIM</button>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <button id="payBtn">Pay ₹<span id="amount">0</span></button>
-  </div>
-
-  <p class="status" id="status">Waiting for payment…</p>
-</div>
-
-<script src="app.js"></script>
-</body>
-</html>
+.popup{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.6);
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+.popup-box{
+  background:#0f172a;
+  padding:30px;
+  border-radius:16px;
+  text-align:center;
+}
+.hidden{display:none}
