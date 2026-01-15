@@ -347,30 +347,37 @@ async function buyNow() {
   buyBtn.innerText = "Processing...";
   buyBtn.disabled = true;
 
-  const res = await fetch(
-    "https://api.digitalcart.space/api/create-order",
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId,
-        userId: currentUser.uid
-      })
+  try {
+    const res = await fetch(
+      "https://api.digitalcart.space/api/create-order",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          productId,
+          userId: currentUser.uid
+        })
+      }
+    );
+
+    const data = await res.json();
+
+    if (data.status !== "success") {
+      alert(data.message || "Order failed");
+      resetBtn();
+      return;
     }
-  );
 
-  const data = await res.json();
-  if (data.status !== "success") {
-    alert(data.message);
+    // 🔥 IMPORTANT: hard redirect (no JS stuck)
+    window.location.assign("/pay/?order=" + data.order_id);
+
+  } catch (err) {
+    console.error(err);
+    alert("Network error. Try again.");
     resetBtn();
-    return;
   }
-
-  // 🔑 CHANGE STARTS HERE
-  const paymentUrl = encodeURIComponent(data.payment_url);
-
-  location.href = "/pay/?order=" + data.order_id;
 }
+
 
 
 function unlockDownload() {
