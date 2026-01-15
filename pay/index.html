@@ -2,33 +2,52 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Complete Payment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>UPI Payment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="container">
-  <div class="card">
-    <h2>Complete Payment</h2>
-    <p class="sub">Amount to Pay</p>
-
-    <div id="amount" class="amount">₹0</div>
-
-    <p class="status" id="status">
-      <span class="loader"></span> Waiting for payment...
-    </p>
-
-    <div class="qr-box">
-      <img id="qrImg" alt="QR Code" />
-    </div>
-
-    <p class="hint">Scan with any UPI app</p>
-
-    <div class="timer" id="timer">⏳ 05:00</div>
-
-    <button id="upiBtn" class="upi-btn">Pay with UPI App</button>
+<div class="header">
+  <button class="back">←</button>
+  <div class="merchant">
+    <h3>DigitalCart Pvt Ltd</h3>
+    <span class="trusted">✔ UPI Trusted Business</span>
   </div>
+</div>
+
+<div class="container">
+
+  <section class="upi-section">
+    <h4>UPI</h4>
+
+    <div class="qr-card">
+      <img id="qrImg" />
+      <div class="qr-info">
+        <p>Scan the QR using any UPI app</p>
+        <div class="apps">
+          <span>GPay</span>
+          <span>PhonePe</span>
+          <span>Paytm</span>
+          <span>BHIM</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="upi-id">
+    <h4>Pay with UPI ID / Number</h4>
+    <input type="text" id="upiInput" placeholder="example@upi" />
+  </section>
+
+</div>
+
+<div class="footer">
+  <div class="amount">
+    ₹<span id="amount">0</span>
+    <small>View details</small>
+  </div>
+  <button id="payBtn">Continue</button>
 </div>
 
 <script src="app.js"></script>
