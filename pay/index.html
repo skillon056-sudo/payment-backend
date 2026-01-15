@@ -1,23 +1,34 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Complete Payment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="card">
-  <h2>🎮 COMPLETE PAYMENT</h2>
-  <p id="amount">Loading...</p>
+<div class="container">
+  <div class="card">
+    <h2>Complete Payment</h2>
+    <p class="sub">Amount to Pay</p>
 
-  <div class="qr-box">
-    <img id="qrImg">
+    <div id="amount" class="amount">₹0</div>
+
+    <p class="status" id="status">
+      <span class="loader"></span> Waiting for payment...
+    </p>
+
+    <div class="qr-box">
+      <img id="qrImg" alt="QR Code" />
+    </div>
+
+    <p class="hint">Scan with any UPI app</p>
+
+    <div class="timer" id="timer">⏳ 05:00</div>
+
+    <button id="upiBtn" class="upi-btn">Pay with UPI App</button>
   </div>
-
-  <button id="upiBtn">Pay with UPI App</button>
-  <p id="status">Waiting for payment...</p>
 </div>
 
 <script src="app.js"></script>
