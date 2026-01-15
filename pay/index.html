@@ -1,42 +1,48 @@
-body{
-  background:#0b1020;
-  color:#fff;
-  font-family:system-ui;
-  display:flex;
-  justify-content:center;
-}
-.box,.pay-screen{
-  margin-top:80px;
-  background:#121b3a;
-  padding:20px;
-  border-radius:16px;
-  width:90%;
-  max-width:360px;
-  text-align:center;
-}
-button{
-  margin-top:20px;
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:14px;
-  background:#00d2ff;
-  font-weight:700;
-}
-img{margin:20px 0}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Complete Payment</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
 
-.popup{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:flex;
-  justify-content:center;
-  align-items:center;
-}
-.popup-box{
-  background:#0f172a;
-  padding:30px;
-  border-radius:16px;
-  text-align:center;
-}
-.hidden{display:none}
+<div class="card">
+  <h2>🎮 COMPLETE PAYMENT</h2>
+  <p id="amount">Amount: ₹69</p>
+
+  <!-- PAYMENT OPTIONS -->
+  <div class="options">
+    <label class="option">
+      <input type="radio" name="paymode" value="qr" checked />
+      <span>Pay by QR</span>
+    </label>
+
+    <label class="option">
+      <input type="radio" name="paymode" value="app" />
+      <span>Pay with App</span>
+    </label>
+  </div>
+
+  <!-- PAY BUTTON -->
+  <button id="payBtn">Pay Now</button>
+
+  <p class="note">Secure UPI payment</p>
+</div>
+
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const order = params.get("order");
+
+  if (!order) {
+    alert("Invalid order");
+  }
+
+  document.getElementById("payBtn").onclick = () => {
+    window.location.href = `pay.html?order=${order}`;
+  };
+</script>
+
+</body>
+</html>

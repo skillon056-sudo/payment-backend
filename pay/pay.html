@@ -1,48 +1,32 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8" />
-  <title>Complete Payment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Waiting for Payment</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-<div class="card">
-  <h2>🎮 COMPLETE PAYMENT</h2>
-  <p id="amount">Amount: ₹69</p>
+<div class="pay-card">
+  <h3>Scan QR to Pay</h3>
 
-  <!-- PAYMENT OPTIONS -->
-  <div class="options">
-    <label class="option">
-      <input type="radio" name="paymode" value="qr" checked />
-      <span>Pay by QR</span>
-    </label>
+  <img id="qrImg" />
 
-    <label class="option">
-      <input type="radio" name="paymode" value="app" />
-      <span>Pay with App</span>
-    </label>
+  <div class="apps">
+    <span>GPay</span>
+    <span>PhonePe</span>
+    <span>Paytm</span>
   </div>
 
-  <!-- PAY BUTTON -->
-  <button id="payBtn">Pay Now</button>
-
-  <p class="note">Secure UPI payment</p>
+  <p class="wait">Waiting for payment…</p>
 </div>
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const order = params.get("order");
+<!-- SUCCESS / FAIL POPUP -->
+<div class="popup hidden" id="popup">
+  <div class="popup-box" id="popupBox"></div>
+</div>
 
-  if (!order) {
-    alert("Invalid order");
-  }
-
-  document.getElementById("payBtn").onclick = () => {
-    window.location.href = `pay.html?order=${order}`;
-  };
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
