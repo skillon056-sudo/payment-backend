@@ -1,74 +1,47 @@
-* {
-  box-sizing: border-box;
-  font-family: "Segoe UI", system-ui, sans-serif;
+body{
+  margin:0;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#050b18;
+  font-family:Arial;
+  color:#fff;
 }
 
-body {
-  margin: 0;
-  background: radial-gradient(circle at top, #0b1220, #020617);
-  min-height: 100vh;
+.card{
+  background:#0c1533;
+  padding:25px;
+  width:320px;
+  text-align:center;
+  border-radius:18px;
+  box-shadow:0 0 40px rgba(0,255,255,.2);
 }
 
-.page {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
+.qr-box{
+  background:#fff;
+  padding:10px;
+  border-radius:12px;
+  margin:15px 0;
 }
 
-.card {
-  width: 320px;
-  background: linear-gradient(180deg, #0f172a, #020617);
-  border-radius: 18px;
-  padding: 22px;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(0, 255, 255, 0.25);
+.qr-box img{
+  width:220px;
 }
 
-.card h2 {
-  margin: 0 0 10px;
-  color: #e5e7eb;
-  letter-spacing: 1px;
+button{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:#00e5ff;
+  color:#000;
+  font-size:16px;
+  cursor:pointer;
 }
 
-#amount {
-  color: #38bdf8;
-  font-size: 16px;
-  margin-bottom: 12px;
-}
-
-.qr-box {
-  background: #ffffff;
-  padding: 10px;
-  border-radius: 12px;
-  margin-bottom: 14px;
-}
-
-.qr-box img {
-  width: 100%;
-  height: auto;
-}
-
-button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 12px;
-  border: none;
-  cursor: pointer;
-  font-size: 15px;
-  background: linear-gradient(90deg, #22d3ee, #38bdf8);
-  color: #020617;
-  font-weight: 700;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-}
-
-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 18px rgba(56, 189, 248, 0.45);
-}
-
-#status {
-  margin-top: 10px;
-  font-size: 13px;
-  color: #94a3b8;
+#status{
+  margin-top:12px;
+  font-size:14px;
+  color:#aaa;
 }

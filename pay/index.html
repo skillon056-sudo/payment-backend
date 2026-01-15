@@ -19,53 +19,6 @@
   <button id="upiBtn">Pay with UPI App</button>
   <p id="status">Waiting for payment...</p>
 </div>
-<script>
-const params = new URLSearchParams(location.search);
-const orderId = params.get("order");
-
-let autoCheckUrl = null;
-
-// 1️⃣ Pehle order info lao
-fetch("https://api.digitalcart.space/api/order-info", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ order: orderId })
-})
-.then(res => res.json())
-.then(data => {
-  if (data.status !== "success") {
-    alert("Invalid order");
-    return;
-  }
-
-  autoCheckUrl = data.auto_check_url;
-
-  // 2️⃣ Har 2 second auto-check
-  startAutoCheck();
-});
-
-function startAutoCheck() {
-  setInterval(async () => {
-    try {
-      const res = await fetch(autoCheckUrl);
-      const result = await res.json();
-
-      console.log("ZapUPI auto-check:", result);
-
-      if (result.status === "success" && result.data?.status === "Success") {
-        window.location.href = `/success.html?order=${orderId}`;
-      }
-
-      if (result.status === "failed") {
-        alert("Payment failed");
-      }
-
-    } catch (e) {
-      console.error("Auto-check error", e);
-    }
-  }, 2000);
-}
-</script>
 
 <script src="app.js"></script>
 </body>
