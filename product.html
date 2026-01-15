@@ -369,8 +369,8 @@ async function buyNow() {
   // 🔑 CHANGE STARTS HERE
   const paymentUrl = encodeURIComponent(data.payment_url);
 
-  location.href =
-    `https://digitalcart.space/pay/?payment_url=${paymentUrl}`;
+  location.href = "/pay/?order=" + data.order_id;
+
 }
 
 

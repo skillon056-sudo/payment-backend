@@ -1,74 +1,25 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <meta charset="UTF-8">
   <title>Complete Payment</title>
-  <style>
-    body {
-      margin: 0;
-      min-height: 100vh;
-      background: radial-gradient(circle at top, #0f1c3f, #020617);
-      font-family: Arial, sans-serif;
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .box {
-      background: #020617;
-      padding: 30px;
-      border-radius: 16px;
-      box-shadow: 0 0 40px #020617;
-      text-align: center;
-      max-width: 420px;
-      width: 100%;
-    }
-    h1 {
-      color: #38bdf8;
-      letter-spacing: 2px;
-      margin-bottom: 15px;
-    }
-    p {
-      color: #cbd5f5;
-      font-size: 14px;
-      margin-bottom: 25px;
-    }
-    button {
-      background: linear-gradient(90deg, #00ff88, #22c55e);
-      border: none;
-      padding: 14px 20px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 12px;
-      cursor: pointer;
-      color: #020617;
-      width: 100%;
-    }
-    button:hover {
-      transform: scale(1.03);
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="box">
-  <h1>🎮 COMPLETE PAYMENT</h1>
-  <p>You will be redirected to secure payment page</p>
-  <button id="payBtn">PROCEED TO PAY</button>
+<div class="card">
+  <h2>🎮 COMPLETE PAYMENT</h2>
+  <p id="amount">Loading...</p>
+
+  <div class="qr-box">
+    <img id="qrImg">
+  </div>
+
+  <button id="upiBtn">Pay with UPI App</button>
+  <p id="status">Waiting for payment...</p>
 </div>
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const paymentUrl = params.get("payment_url");
-
-  document.getElementById("payBtn").onclick = () => {
-    if (!paymentUrl) {
-      alert("Payment link missing");
-      return;
-    }
-    // same tab redirect (recommended)
-    window.location.href = decodeURIComponent(paymentUrl);
-  };
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
