@@ -1,104 +1,159 @@
+/* ================= RESET ================= */
 * {
+  margin: 0;
+  padding: 0;
   box-sizing: border-box;
-  font-family: Inter, system-ui, -apple-system;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Ubuntu, sans-serif;
 }
 
 body {
-  margin: 0;
   min-height: 100vh;
-  background: radial-gradient(circle at top, #0b1a14, #020c0a);
+  background: radial-gradient(circle at top, #0b1224, #05070f 70%);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  color: #fff;
+}
+
+/* ================= TOP BAR ================= */
+.top-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 56px;
+  background: linear-gradient(135deg, #0e1630, #0a0f22);
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: #e8fff3;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  z-index: 100;
 }
 
-.container {
-  width: 100%;
-  max-width: 420px;
-  padding: 16px;
+.back-btn {
+  background: none;
+  border: none;
+  color: #8aa4ff;
+  font-size: 22px;
+  cursor: pointer;
 }
 
-.card {
-  background: linear-gradient(180deg, #0e241b, #07140f);
-  border-radius: 20px;
-  padding: 24px;
-  text-align: center;
-  box-shadow: 0 0 40px rgba(0,255,180,0.15);
-}
-
-h2 {
-  margin: 0;
-  font-size: 20px;
+.title {
+  margin-left: 12px;
+  font-size: 16px;
   font-weight: 600;
+  letter-spacing: 0.4px;
 }
 
-.sub {
-  margin-top: 6px;
-  color: #9bd8c0;
-  font-size: 14px;
+/* ================= CARD ================= */
+.payment-card {
+  margin-top: 90px;
+  width: 92%;
+  max-width: 380px;
+  background: linear-gradient(180deg, #0e1533, #0a1026);
+  border-radius: 20px;
+  padding: 22px 20px 26px;
+  box-shadow:
+    0 0 0 1px rgba(255,255,255,0.05),
+    0 20px 60px rgba(0,0,0,0.65);
+  text-align: center;
+}
+
+/* ================= TEXT ================= */
+.heading {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
 }
 
 .amount {
-  font-size: 42px;
-  font-weight: 700;
-  margin: 12px 0;
-  color: #3dffb2;
+  font-size: 22px;
+  font-weight: 800;
+  color: #00ff9c;
+  margin-bottom: 18px;
 }
 
-.status {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  font-size: 14px;
-  color: #ffd38a;
-  margin-bottom: 16px;
-}
-
-.loader {
-  width: 14px;
-  height: 14px;
-  border: 2px solid #ffd38a55;
-  border-top-color: #ffd38a;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to { transform: rotate(360deg); }
-}
-
-.qr-box {
-  background: #fff;
-  padding: 12px;
+/* ================= QR ================= */
+.qr-wrapper {
+  background: #ffffff;
   border-radius: 16px;
-  margin: 0 auto;
-  width: fit-content;
+  padding: 14px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
-.qr-box img {
-  width: 220px;
-  height: 220px;
+.qr-wrapper img {
+  width: 100%;
+  max-width: 260px;
+  height: auto;
 }
 
 .hint {
-  margin-top: 10px;
   font-size: 13px;
-  color: #9bd8c0;
+  opacity: 0.75;
+  margin-bottom: 14px;
 }
 
-.timer {
-  margin-top: 6px;
-  font-size: 14px;
-  color: #ffb870;
+/* ================= UPI ICONS ================= */
+.upi-icons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
+.upi-icons img {
+  height: 26px;
+  filter: brightness(1.1);
+}
+
+/* ================= BUTTON ================= */
 .upi-btn {
-  margin-top: 18px;
   width: 100%;
-  padding: 14px;
+  height: 48px;
   border-radius: 14px;
   border: none;
-  background: linear-gradient(90deg, #00e5ff,
-  
+  background: linear-gradient(135deg, #00e5ff, #00b4ff);
+  color: #031018;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  box-shadow: 0 10px 30px rgba(0,180,255,0.35);
+}
+
+.upi-btn:active {
+  transform: scale(0.97);
+}
+
+.upi-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ================= STATUS ================= */
+.status {
+  margin-top: 14px;
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+/* ================= SUCCESS / FAIL STATES ================= */
+.status.success {
+  color: #00ff9c;
+  font-weight: 600;
+}
+
+.status.failed {
+  color: #ff5c5c;
+  font-weight: 600;
+}
+
+/* ================= DESKTOP TWEAK ================= */
+@media (min-width: 600px) {
+  body {
+    align-items: center;
+  }
+}

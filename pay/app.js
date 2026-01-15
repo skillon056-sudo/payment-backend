@@ -1,51 +1,89 @@
-const params = new URLSearchParams(window.location.search);
-const order = params.get("order");
+// ================== CONFIG ==================
+const API_BASE = "https://api.digitalcart.space/api";
 
-if (!order) {
-  document.getElementById("status").innerText = "Invalid order";
-  throw new Error("Order missing");
+// ================== GET ORDER ==================
+const params = new URLSearchParams(window.location.search);
+const orderId = params.get("order");
+
+const qrImg = document.getElementById("qrImg");
+const amountEl = document.getElementById("amount");
+const statusEl = document.getElementById("status");
+const upiBtn = document.getElementById("upiBtn");
+
+if (!orderId) {
+  statusEl.innerText = "Invalid Order";
+  throw new Error("Order ID missing");
 }
 
-let remaining = 300; // 5 min
+// ================== LOAD PAYMENT ==================
+async function loadPayment() {
+  try {
+    const res = await fetch(`${API_BASE}/order-info`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order: orderId })
+    });
 
-function startTimer() {
-  const t = document.getElementById("timer");
-  setInterval(() => {
-    if (remaining <= 0) {
-      t.innerText = "⛔ Expired";
+    const data = await res.json();
+
+    if (data.status !== "success") {
+      statusEl.innerText = "Unable to load payment";
       return;
     }
-    remaining--;
-    const m = String(Math.floor(remaining / 60)).padStart(2, "0");
-    const s = String(remaining % 60).padStart(2, "0");
-    t.innerText = `⏳ ${m}:${s}`;
-  }, 1000);
-}
 
-async function init() {
-  const res = await fetch("https://api.digitalcart.space/api/order-info", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ order })
-  });
+    // Amount
+    amountEl.innerText = `Amount: ₹${data.amount}`;
 
-  const data = await res.json();
-  if (data.status !== "success") {
-    document.getElementById("status").innerText = "Unable to load payment";
-    return;
+    // QR Code
+    qrImg.src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
+      encodeURIComponent(data.payment_data);
+
+    // UPI Intent
+    upiBtn.onclick = () => {
+      window.location.href = data.payment_data;
+    };
+
+    // Start polling backend status
+    startStatusPolling();
+
+  } catch (err) {
+    console.error(err);
+    statusEl.innerText = "Network error";
   }
-
-  document.getElementById("amount").innerText = "₹" + data.amount;
-
-  document.getElementById("qrImg").src =
-    "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
-    encodeURIComponent(data.payment_data);
-
-  document.getElementById("upiBtn").onclick = () => {
-    window.location.href = data.payment_data;
-  };
-
-  startTimer();
 }
 
-init();
+// ================== POLL BACKEND ==================
+function startStatusPolling() {
+  statusEl.innerText = "Waiting for payment...";
+
+  const interval = setInterval(async () => {
+    try {
+      const res = await fetch(`${API_BASE}/verify-payment`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ order: orderId })
+      });
+
+      const result = await res.json();
+
+      if (result.status === "success") {
+        clearInterval(interval);
+        window.location.href = `/success.html?order=${orderId}`;
+      }
+
+      if (result.status === "failed") {
+        clearInterval(interval);
+        statusEl.innerText = "Payment failed";
+      }
+
+      // pending → do nothing
+
+    } catch (e) {
+      console.error("Polling error", e);
+    }
+  }, 2000);
+}
+
+// ================== INIT ==================
+loadPayment();

@@ -4,33 +4,51 @@
   <meta charset="UTF-8" />
   <title>Complete Payment</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-<div class="container">
-  <div class="card">
-    <h2>Complete Payment</h2>
-    <p class="sub">Amount to Pay</p>
+  <!-- HEADER -->
+  <div class="top-bar">
+    <button class="back-btn" onclick="history.back()">←</button>
+    <span class="title">Complete Payment</span>
+  </div>
 
-    <div id="amount" class="amount">₹0</div>
+  <!-- CARD -->
+  <div class="payment-card">
 
-    <p class="status" id="status">
-      <span class="loader"></span> Waiting for payment...
-    </p>
+    <h2 class="heading">UPI Payment</h2>
+    <p class="amount" id="amount">Loading...</p>
 
-    <div class="qr-box">
-      <img id="qrImg" alt="QR Code" />
+    <!-- QR -->
+    <div class="qr-wrapper">
+      <img id="qrImg" alt="UPI QR Code" />
     </div>
 
-    <p class="hint">Scan with any UPI app</p>
+    <p class="hint">Scan the QR using any UPI app</p>
 
-    <div class="timer" id="timer">⏳ 05:00</div>
+    <!-- UPI APPS -->
+    <div class="upi-icons">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Google_Pay_%28GPay%29_Logo.svg" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/PhonePe_Logo.svg" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Paytm_Logo_%28standalone%29.svg" />
+      <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/BHIM_UPI_Logo.svg" />
+    </div>
 
-    <button id="upiBtn" class="upi-btn">Pay with UPI App</button>
+    <!-- INTENT -->
+    <button id="upiBtn" class="upi-btn">
+      Pay with UPI App
+    </button>
+
+    <!-- STATUS -->
+    <p class="status" id="status">Waiting for payment...</p>
+
   </div>
-</div>
 
-<script src="app.js"></script>
+  <!-- JS -->
+  <script src="app.js"></script>
 </body>
 </html>
