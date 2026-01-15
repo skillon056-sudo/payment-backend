@@ -1,49 +1,82 @@
 const params = new URLSearchParams(window.location.search);
 const order = params.get("order");
 
+const statusEl = document.getElementById("status");
+const qrImg = document.getElementById("qrImg");
+const amountEl = document.getElementById("amount");
+const upiBtn = document.getElementById("upiBtn");
+
 if (!order) {
-  document.getElementById("status").innerText = "Invalid order";
+  statusEl.innerText = "Invalid order";
   throw new Error("Order missing");
 }
 
+let intervalId = null;
+
 async function initPayment() {
-  const res = await fetch("https://api.digitalcart.space/api/order-info", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ order })
-  });
+  try {
+    // 1️⃣ Order info lao
+    const res = await fetch("https://api.digitalcart.space/api/order-info", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
 
-  // QR
-  document.getElementById("qrImg").src =
-    "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
-    encodeURIComponent(data.payment_data);
+    if (data.status !== "success" || !data.payment_data) {
+      statusEl.innerText = "Unable to load payment";
+      return;
+    }
 
-  // Amount
-  document.getElementById("amount").innerText = "Amount: ₹" + data.amount;
+    // 2️⃣ Amount
+    amountEl.innerText = "Amount: ₹" + data.amount;
 
-  // UPI intent
-  document.getElementById("upiBtn").onclick = () => {
-    window.location.href = data.payment_data;
-  };
+    // 3️⃣ QR generate
+    qrImg.src =
+      "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
+      encodeURIComponent(data.payment_data);
 
-  // auto check every 2 sec
-  setInterval(checkPayment, 2000);
-}
+    // 4️⃣ UPI Intent
+    upiBtn.onclick = () => {
+      window.location.href = data.payment_data;
+    };
 
-async function checkPayment() {
-  const res = await fetch("https://api.digitalcart.space/api/verify-payment", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ order })
-  });
+    // 5️⃣ AUTO CHECK – har 2 sec (IMPORTANT)
+    intervalId = setInterval(checkPaymentStatus, 2000);
 
-  const result = await res.json();
-
-  if (result.status === "success") {
-    window.location.href = "/success.html?order=" + order;
+  } catch (err) {
+    console.error("Init error:", err);
+    statusEl.innerText = "Payment init failed";
   }
 }
 
+async function checkPaymentStatus() {
+  try {
+    const res = await fetch("https://api.digitalcart.space/api/verify-payment", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ order })
+    });
+
+    const result = await res.json();
+
+    console.log("Verify response:", result);
+
+    if (result.status === "success") {
+      clearInterval(intervalId); // ⛔ stop polling
+      window.location.href = "/success.html?order=" + order;
+    }
+
+    if (result.status === "error" && result.message === "Payment failed") {
+      clearInterval(intervalId);
+      statusEl.innerText = "Payment failed";
+    }
+
+  } catch (err) {
+    console.error("Verify error:", err);
+  }
+}
+
+statusEl.innerText = "Waiting for payment...";
 initPayment();
