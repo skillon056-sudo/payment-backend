@@ -365,8 +365,14 @@ async function buyNow() {
     resetBtn();
     return;
   }
-  location.href = data.payment_url;
+
+  // 🔑 CHANGE STARTS HERE
+  const paymentUrl = encodeURIComponent(data.payment_url);
+
+  location.href =
+    `https://digitalcart.space/pay/?payment_url=${paymentUrl}`;
 }
+
 
 function unlockDownload() {
   buyBtn.innerText = "DOWNLOAD";

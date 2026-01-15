@@ -1,32 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Complete Payment</title>
-  <link rel="stylesheet" href="style.css" />
+  <title>Secure Payment</title>
+  <style>
+    body {
+      margin: 0;
+      background: radial-gradient(circle at top, #0f1c3f, #020617);
+      font-family: Arial, sans-serif;
+      color: white;
+      text-align: center;
+    }
+    h1 {
+      color: #38bdf8;
+      margin: 20px 0;
+      letter-spacing: 2px;
+    }
+    .box {
+      max-width: 420px;
+      margin: auto;
+      background: #020617;
+      padding: 12px;
+      border-radius: 14px;
+      box-shadow: 0 0 30px #020617;
+    }
+    iframe {
+      width: 100%;
+      height: 520px;
+      border: none;
+      border-radius: 12px;
+      background: white;
+    }
+  </style>
 </head>
 <body>
 
-<div class="container">
-  <h1 class="title">🎮 COMPLETE PAYMENT</h1>
+<h1>🎮 COMPLETE PAYMENT</h1>
 
-  <div class="card">
-    <p class="label">Order ID</p>
-    <p class="value" id="orderId"></p>
-
-    <p class="label">Amount</p>
-    <p class="value">₹<span id="amount"></span></p>
-  </div>
-
-  <div class="card qr-card">
-    <p class="label">Scan & Pay (UPI)</p>
-    <img id="qrImage" alt="UPI QR Code" />
-    <p class="hint">Use any UPI app (GPay / PhonePe / Paytm)</p>
-  </div>
-
-  <p id="status">Waiting for payment...</p>
+<div class="box">
+  <iframe id="payFrame"></iframe>
 </div>
 
-<script src="app.js"></script>
+<script>
+  const params = new URLSearchParams(window.location.search);
+  const paymentUrl = params.get("payment_url");
+
+  if (!paymentUrl) {
+    document.body.innerHTML = "<h2>Payment link missing</h2>";
+  } else {
+    document.getElementById("payFrame").src =
+      decodeURIComponent(paymentUrl);
+  }
+</script>
+
 </body>
 </html>
