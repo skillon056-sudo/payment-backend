@@ -3,52 +3,63 @@
 <head>
   <meta charset="UTF-8" />
   <title>Complete Payment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- CSS -->
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
-
 <body>
 
+<div class="app">
+
   <!-- HEADER -->
-  <div class="top-bar">
-    <button class="back-btn" onclick="history.back()">←</button>
-    <span class="title">Complete Payment</span>
+  <div class="header">
+    <span class="back">←</span>
+    <div>
+      <div class="title">Complete Payment</div>
+      <div class="timer" id="timer">Link valid for 15:00</div>
+    </div>
   </div>
 
-  <!-- CARD -->
-  <div class="payment-card">
-
-    <h2 class="heading">UPI Payment</h2>
-    <p class="amount" id="amount">Loading...</p>
-
-    <!-- QR -->
-    <div class="qr-wrapper">
-      <img id="qrImg" alt="UPI QR Code" />
-    </div>
-
-    <p class="hint">Scan the QR using any UPI app</p>
-
-    <!-- UPI APPS -->
-    <div class="upi-icons">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/f/fa/Google_Pay_%28GPay%29_Logo.svg" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/0/09/PhonePe_Logo.svg" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/7a/Paytm_Logo_%28standalone%29.svg" />
-      <img src="https://upload.wikimedia.org/wikipedia/commons/3/3b/BHIM_UPI_Logo.svg" />
-    </div>
-
-    <!-- INTENT -->
-    <button id="upiBtn" class="upi-btn">
-      Pay with UPI App
-    </button>
-
-    <!-- STATUS -->
-    <p class="status" id="status">Waiting for payment...</p>
-
+  <!-- OFFER -->
+  <div class="offer">
+    <span>🎁 Use CRED UPI & get rewards</span>
+    <button>Apply</button>
   </div>
 
-  <!-- JS -->
-  <script src="app.js"></script>
+  <!-- PAYMENT OPTIONS -->
+  <div class="options">
+    <label class="option">
+      <input type="radio" name="method" value="upi" checked />
+      <span>Pay with App</span>
+    </label>
+
+    <label class="option">
+      <input type="radio" name="method" value="qr" />
+      <span>Pay by QR</span>
+    </label>
+  </div>
+
+  <!-- QR -->
+  <div class="qr-box hidden" id="qrBox">
+    <img id="qrImg" />
+    <p>Scan using any UPI App</p>
+  </div>
+
+  <!-- INTENTS -->
+  <div class="apps" id="apps">
+    <button data-app="phonepe">PhonePe</button>
+    <button data-app="gpay">GPay</button>
+    <button data-app="paytm">Paytm</button>
+    <button data-app="bhim">BHIM</button>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <button id="payBtn">Pay ₹<span id="amount">0</span></button>
+  </div>
+
+  <p class="status" id="status">Waiting for payment…</p>
+</div>
+
+<script src="app.js"></script>
 </body>
 </html>

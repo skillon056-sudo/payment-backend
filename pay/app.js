@@ -1,89 +1,61 @@
-// ================== CONFIG ==================
-const API_BASE = "https://api.digitalcart.space/api";
+const params = new URLSearchParams(location.search);
+const order = params.get("order");
 
-// ================== GET ORDER ==================
-const params = new URLSearchParams(window.location.search);
-const orderId = params.get("order");
-
+const qrBox = document.getElementById("qrBox");
 const qrImg = document.getElementById("qrImg");
+const apps = document.getElementById("apps");
 const amountEl = document.getElementById("amount");
-const statusEl = document.getElementById("status");
-const upiBtn = document.getElementById("upiBtn");
 
-if (!orderId) {
-  statusEl.innerText = "Invalid Order";
-  throw new Error("Order ID missing");
+let paymentData = "";
+let autoCheckUrl = "";
+
+async function init(){
+  const res = await fetch("https://api.digitalcart.space/api/order-info",{
+    method:"POST",
+    headers:{ "Content-Type":"application/json" },
+    body:JSON.stringify({ order })
+  });
+  const data = await res.json();
+
+  paymentData = data.payment_data;
+  autoCheckUrl = data.auto_check_url;
+  amountEl.innerText = data.amount;
+
+  qrImg.src =
+   "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
+   encodeURIComponent(paymentData);
+
+  startAutoCheck();
 }
 
-// ================== LOAD PAYMENT ==================
-async function loadPayment() {
-  try {
-    const res = await fetch(`${API_BASE}/order-info`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ order: orderId })
-    });
-
-    const data = await res.json();
-
-    if (data.status !== "success") {
-      statusEl.innerText = "Unable to load payment";
-      return;
+document.querySelectorAll("input[name='method']").forEach(r=>{
+  r.onchange = ()=>{
+    if(r.value==="qr"){
+      qrBox.classList.remove("hidden");
+      apps.style.display="none";
+    }else{
+      qrBox.classList.add("hidden");
+      apps.style.display="grid";
     }
-
-    // Amount
-    amountEl.innerText = `Amount: ₹${data.amount}`;
-
-    // QR Code
-    qrImg.src =
-      "https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=" +
-      encodeURIComponent(data.payment_data);
-
-    // UPI Intent
-    upiBtn.onclick = () => {
-      window.location.href = data.payment_data;
-    };
-
-    // Start polling backend status
-    startStatusPolling();
-
-  } catch (err) {
-    console.error(err);
-    statusEl.innerText = "Network error";
   }
-}
+});
 
-// ================== POLL BACKEND ==================
-function startStatusPolling() {
-  statusEl.innerText = "Waiting for payment...";
+document.querySelectorAll(".apps button").forEach(btn=>{
+  btn.onclick = ()=>{
+    window.location.href = paymentData;
+  };
+});
 
-  const interval = setInterval(async () => {
-    try {
-      const res = await fetch(`${API_BASE}/verify-payment`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ order: orderId })
-      });
+function startAutoCheck(){
+  const iv = setInterval(async ()=>{
+    const res = await fetch(autoCheckUrl);
+    const j = await res.json();
 
-      const result = await res.json();
-
-      if (result.status === "success") {
-        clearInterval(interval);
-        window.location.href = `/success.html?order=${orderId}`;
-      }
-
-      if (result.status === "failed") {
-        clearInterval(interval);
-        statusEl.innerText = "Payment failed";
-      }
-
-      // pending → do nothing
-
-    } catch (e) {
-      console.error("Polling error", e);
+    if(j.status==="SUCCESS"){
+      clearInterval(iv);
+      location.href = "/success.html?order="+order;
     }
-  }, 2000);
+  },2000);
 }
 
-// ================== INIT ==================
-loadPayment();
+init();
