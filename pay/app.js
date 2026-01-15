@@ -1,76 +1,101 @@
-const params = new URLSearchParams(location.search);
+const params = new URLSearchParams(window.location.search);
 const order = params.get("order");
 
+if (!order) {
+  alert("Invalid order");
+  throw new Error("Order missing");
+}
+
 const qrImg = document.getElementById("qrImg");
+const amountText = document.getElementById("amountText");
+const statusText = document.getElementById("statusText");
+
+const qrSection = document.getElementById("qrSection");
+const appSection = document.getElementById("appSection");
+
+const qrOption = document.getElementById("qrOption");
+const appOption = document.getElementById("appOption");
+
 const popup = document.getElementById("popup");
-const popupBox = document.getElementById("popupBox");
+const popupTitle = document.getElementById("popupTitle");
+const popupMsg = document.getElementById("popupMsg");
 
-let autoCheckUrl = "";
-let paymentData = "";
+let paymentData = null;
 
-// LOAD ORDER INFO
-fetch("https://api.digitalcart.space/api/order-info", {
-  method: "POST",
-  headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ order })
-})
-.then(r => r.json())
-.then(d => {
-  if (d.status !== "success") {
-    alert("Invalid order");
+/* -------- OPTION SWITCH -------- */
+qrOption.onclick = () => {
+  qrOption.classList.add("active");
+  appOption.classList.remove("active");
+  qrSection.classList.remove("hidden");
+  appSection.classList.add("hidden");
+};
+
+appOption.onclick = () => {
+  appOption.classList.add("active");
+  qrOption.classList.remove("active");
+  qrSection.classList.add("hidden");
+  appSection.classList.remove("hidden");
+};
+
+/* -------- LOAD ORDER INFO -------- */
+async function init() {
+  const res = await fetch("https://api.digitalcart.space/api/order-info", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ order })
+  });
+
+  const data = await res.json();
+  if (data.status !== "success") {
+    statusText.innerText = "Unable to load payment";
     return;
   }
 
-  paymentData = d.payment_data;
-  autoCheckUrl = d.auto_check_url;
+  paymentData = data.payment_data;
+  amountText.innerText = "₹" + data.amount;
 
-  // QR
   qrImg.src =
-    "https://api.qrserver.com/v1/create-qr-code/?size=280x280&data=" +
+    "https://api.qrserver.com/v1/create-qr-code/?size=260x260&data=" +
     encodeURIComponent(paymentData);
 
-  // Auto check
+  document.getElementById("payAppBtn").onclick = () => {
+    window.location.href = paymentData;
+  };
+
   startAutoCheck();
-});
+}
 
-// AUTO CHECK EVERY 2 SEC
+/* -------- AUTO CHECK (BACKEND ALREADY UPDATES DB) -------- */
 function startAutoCheck() {
-  const iv = setInterval(async () => {
-    try {
-      const r = await fetch(autoCheckUrl);
-      const j = await r.json();
+  const interval = setInterval(async () => {
+    const res = await fetch("https://api.digitalcart.space/api/verify-payment", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ order })
+    });
 
-      if (j.status === "SUCCESS") {
-        clearInterval(iv);
-        showSuccess();
-      }
+    const result = await res.json();
 
-      if (j.status === "FAILED") {
-        clearInterval(iv);
-        showFail();
-      }
-    } catch (e) {
-      console.log("Waiting…");
+    if (result.status === "success") {
+      clearInterval(interval);
+      showPopup("✅ Payment Successful", "Redirecting...");
+      setTimeout(() => {
+        window.location.href = "/success.html?order=" + order;
+      }, 2000);
+    }
+
+    if (result.status === "error" && result.message === "failed") {
+      clearInterval(interval);
+      showPopup("❌ Payment Failed", "Please try again");
     }
   }, 2000);
 }
 
-// POPUPS
-function showSuccess() {
+/* -------- POPUP -------- */
+function showPopup(title, msg) {
+  popupTitle.innerText = title;
+  popupMsg.innerText = msg;
   popup.classList.remove("hidden");
-  popupBox.innerHTML = `
-    <h2>✅ Payment Successful</h2>
-    <p>Redirecting…</p>
-  `;
-  setTimeout(() => {
-    location.href = `/success.html?order=${order}`;
-  }, 2000);
 }
 
-function showFail() {
-  popup.classList.remove("hidden");
-  popupBox.innerHTML = `
-    <h2>❌ Payment Failed</h2>
-    <button onclick="location.href='index.html'">Try Again</button>
-  `;
-}
+init();

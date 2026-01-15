@@ -3,46 +3,52 @@
 <head>
   <meta charset="UTF-8" />
   <title>Complete Payment</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
 
-<div class="card">
-  <h2>🎮 COMPLETE PAYMENT</h2>
-  <p id="amount">Amount: ₹69</p>
-
-  <!-- PAYMENT OPTIONS -->
-  <div class="options">
-    <label class="option">
-      <input type="radio" name="paymode" value="qr" checked />
-      <span>Pay by QR</span>
-    </label>
-
-    <label class="option">
-      <input type="radio" name="paymode" value="app" />
-      <span>Pay with App</span>
-    </label>
+<div class="pay-screen">
+  <div class="header">
+    <span class="brand">🎮 DIGITALCART</span>
+    <span class="timer" id="timer">Link valid</span>
   </div>
 
-  <!-- PAY BUTTON -->
-  <button id="payBtn">Pay Now</button>
+  <!-- OPTION SELECT -->
+  <div class="options">
+    <div class="option active" id="qrOption">Pay by QR</div>
+    <div class="option" id="appOption">Pay with App</div>
+  </div>
 
-  <p class="note">Secure UPI payment</p>
+  <!-- QR SECTION -->
+  <div id="qrSection" class="section">
+    <div class="qr-box">
+      <img id="qrImg" alt="QR Code"/>
+    </div>
+    <p class="info">
+      Scan QR using any UPI app to pay <b id="amountText">₹0</b>
+    </p>
+    <div class="apps">
+      <span>GPay</span><span>PhonePe</span><span>Paytm</span><span>BHIM</span>
+    </div>
+    <p class="status" id="statusText">⏳ Waiting for payment…</p>
+  </div>
+
+  <!-- APP INTENT -->
+  <div id="appSection" class="section hidden">
+    <button class="pay-btn" id="payAppBtn">🚀 Pay with App</button>
+    <p class="status">UPI apps will open automatically</p>
+  </div>
 </div>
 
-<script>
-  const params = new URLSearchParams(window.location.search);
-  const order = params.get("order");
+<!-- SUCCESS / FAIL POPUP -->
+<div class="popup hidden" id="popup">
+  <div class="popup-box" id="popupBox">
+    <h2 id="popupTitle"></h2>
+    <p id="popupMsg"></p>
+  </div>
+</div>
 
-  if (!order) {
-    alert("Invalid order");
-  }
-
-  document.getElementById("payBtn").onclick = () => {
-    window.location.href = `pay.html?order=${order}`;
-  };
-</script>
-
+<script src="app.js"></script>
 </body>
 </html>
